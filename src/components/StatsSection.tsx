@@ -26,28 +26,30 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-muted relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5"></div>
+    <section className="py-24 section-background relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900">UAESponsor by the Numbers</h2>
-          <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="section-title">UAESponsor by the Numbers</h2>
+          <p className="section-subtitle">
             Our platform is growing and connecting brands with events across the UAE.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
-            <Card key={index} className="border-0 bg-white elevation-2 card-hover rounded-lg overflow-hidden">
+            <Card key={index} className="border-0 bg-white material-card">
               <CardContent className="p-8 text-center">
                 <p className="text-5xl font-bold text-primary mb-4">{stat.value}</p>
-                <p className="text-xl font-medium mb-2">{stat.label}</p>
-                <p className="text-gray-600">{stat.description}</p>
+                <p className="text-xl font-medium mb-3">{stat.label}</p>
+                <p className="text-muted-foreground">{stat.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+
+      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-primary/5 rounded-full"></div>
+      <div className="absolute -top-20 -right-20 w-72 h-72 bg-secondary/5 rounded-full"></div>
     </section>
   );
 };

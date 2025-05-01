@@ -72,7 +72,9 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: '1rem',
+				'2xl': '1.5rem'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -118,7 +120,16 @@ export default {
 				'fade-in': 'fade-in 0.3s ease-out',
 				'scale-in': 'scale-in 0.2s ease-out',
 				'fade-scale-in': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out'
-			}
+			},
+			typography: {
+				DEFAULT: {
+					css: {
+						maxWidth: '65ch',
+						color: 'var(--tw-prose-body)',
+						lineHeight: '1.75',
+					},
+				},
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

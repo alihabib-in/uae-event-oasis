@@ -11,7 +11,7 @@ import StatsSection from "../components/StatsSection";
 import { Button } from "@/components/ui/button";
 import { getFeaturedEvents } from "../data/eventData";
 import { Link } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 const Index = () => {
   const featuredEvents = getFeaturedEvents();
@@ -22,27 +22,20 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         
-        <div className="flex justify-center -mt-16 mb-8">
-          <a 
-            href="#featured-events" 
-            className="animate-bounce bg-white p-3 rounded-full shadow-lg"
-          >
-            <ChevronDown className="h-6 w-6 text-primary" />
-          </a>
-        </div>
-        
         {/* Featured Events Section */}
-        <section id="featured-events" className="py-20 bg-gray-50">
+        <section id="featured-events" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center mb-12">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-16">
               <div>
-                <h2 className="text-4xl font-bold text-gray-900">Featured Event Opportunities</h2>
-                <p className="text-xl text-gray-500 mt-4">
+                <h2 className="section-title text-balance">Featured Event Opportunities</h2>
+                <p className="mt-4 text-xl text-muted-foreground max-w-2xl">
                   Popular events looking for brand sponsors
                 </p>
               </div>
-              <Button variant="outline" size="lg" asChild>
-                <Link to="/events">View All Events</Link>
+              <Button variant="outline" size="lg" asChild className="mt-6 lg:mt-0 text-primary border-primary">
+                <Link to="/events" className="flex items-center">
+                  View All Events <ChevronRight className="ml-1 h-5 w-5" />
+                </Link>
               </Button>
             </div>
 
@@ -72,7 +65,17 @@ const Index = () => {
         <HowItWorks />
         <CategorySection />
         <TestimonialSection />
-        <CallToAction type="brand" />
+        
+        {/* Call to Action with more prominent styling */}
+        <section className="py-24 bg-primary/5 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="bg-white rounded-2xl overflow-hidden elevation-4">
+              <CallToAction type="brand" />
+            </div>
+          </div>
+          <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-primary/10 rounded-full"></div>
+          <div className="absolute -top-20 -left-20 w-72 h-72 bg-secondary/10 rounded-full"></div>
+        </section>
       </main>
       <Footer />
     </div>

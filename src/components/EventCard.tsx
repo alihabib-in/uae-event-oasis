@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon } from "lucide-react";
 
 export interface EventCardProps {
   id: string;
@@ -27,27 +27,32 @@ const EventCard = ({
 }: EventCardProps) => {
   return (
     <Link to={`/events/${id}`}>
-      <Card className="overflow-hidden elevation-2 hover:elevation-4 transition-shadow h-full flex flex-col rounded-lg">
+      <Card className="overflow-hidden material-card h-full flex flex-col border-0">
         <div className="aspect-[16/9] relative">
           <img
             src={image}
             alt={title}
             className="object-cover w-full h-full"
           />
-          <Badge className="absolute top-3 right-3 bg-primary">{category}</Badge>
+          <Badge className="absolute top-4 right-4 bg-primary rounded-full py-1.5 px-3">
+            {category}
+          </Badge>
         </div>
-        <CardContent className="pt-6 flex-grow">
+        <CardContent className="pt-6 pb-4 flex-grow">
           <div className="flex items-center mb-2 text-sm text-muted-foreground">
             <CalendarIcon className="h-4 w-4 mr-1" />
             <span>{date}</span>
           </div>
-          <h3 className="font-semibold text-lg mb-2 leading-tight">{title}</h3>
-          <p className="text-muted-foreground text-sm mb-2">{location}</p>
+          <h3 className="text-xl font-bold mb-3 leading-tight text-balance">{title}</h3>
+          <div className="flex items-center text-muted-foreground text-sm mb-2">
+            <MapPinIcon className="h-4 w-4 mr-1" />
+            <p>{location}</p>
+          </div>
         </CardContent>
-        <CardFooter className="border-t pt-4 bg-muted/50">
+        <CardFooter className="border-t pt-4 pb-5 bg-muted/30">
           <div className="w-full">
             <p className="text-sm text-muted-foreground mb-1">Sponsorship Range:</p>
-            <p className="font-semibold text-secondary-foreground">
+            <p className="font-bold text-lg text-primary">
               AED {minBid.toLocaleString()} - {maxBid.toLocaleString()}
             </p>
           </div>

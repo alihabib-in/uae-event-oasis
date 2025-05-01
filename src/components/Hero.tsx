@@ -18,10 +18,10 @@ const Hero = () => {
               Simplify your sponsorship process and maximize your event's potential.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button size="lg" className="text-lg px-8 py-6" asChild>
+              <Button size="lg" className="text-lg px-8 py-6 elevation-2 hover:elevation-4 transition-shadow" asChild>
                 <Link to="/events">Find Events to Sponsor <ArrowRight className="ml-2" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-accent/10 border-2" asChild>
                 <Link to="/post-event">Post Your Event</Link>
               </Button>
             </div>
@@ -30,21 +30,21 @@ const Hero = () => {
                 <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
                   <span className="text-xs font-bold">AE</span>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-primary/80 text-white flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
                   <span className="text-xs font-bold">DB</span>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-primary/60 text-white flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center">
                   <span className="text-xs font-bold">SJ</span>
                 </div>
               </div>
-              <span className="ml-4 text-sm text-gray-500">
+              <span className="ml-4 text-sm text-gray-600">
                 <span className="font-semibold text-gray-900">200+ </span> 
                 organizers trust our platform
               </span>
             </div>
           </div>
           <div className="relative animate-scale-in">
-            <div className="aspect-[4/3] bg-white rounded-lg shadow-xl overflow-hidden">
+            <div className="aspect-[4/3] bg-white rounded-lg elevation-4 overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
                 alt="UAE Events"
@@ -57,8 +57,8 @@ const Hero = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg shadow-lg flex items-center space-x-4 w-64">
-              <div className="flex-shrink-0 h-12 w-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg elevation-3 flex items-center space-x-4 w-64">
+              <div className="flex-shrink-0 h-12 w-12 bg-secondary rounded-full flex items-center justify-center text-secondary-foreground font-bold text-lg">
                 5%
               </div>
               <div>
@@ -66,8 +66,8 @@ const Hero = () => {
                 <p className="text-xs text-gray-500">Transparent pricing</p>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg flex items-center">
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+            <div className="absolute -top-4 -right-4 bg-white p-3 rounded-lg elevation-2 flex items-center">
+              <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
                 Live Bidding
               </div>
             </div>

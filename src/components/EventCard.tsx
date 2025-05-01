@@ -27,7 +27,7 @@ const EventCard = ({
 }: EventCardProps) => {
   return (
     <Link to={`/events/${id}`}>
-      <Card className="overflow-hidden card-hover h-full flex flex-col">
+      <Card className="overflow-hidden elevation-2 hover:elevation-4 transition-shadow h-full flex flex-col rounded-lg">
         <div className="aspect-[16/9] relative">
           <img
             src={image}
@@ -47,7 +47,7 @@ const EventCard = ({
         <CardFooter className="border-t pt-4 bg-muted/50">
           <div className="w-full">
             <p className="text-sm text-muted-foreground mb-1">Sponsorship Range:</p>
-            <p className="font-semibold text-gold-dark">
+            <p className="font-semibold text-secondary-foreground">
               AED {minBid.toLocaleString()} - {maxBid.toLocaleString()}
             </p>
           </div>

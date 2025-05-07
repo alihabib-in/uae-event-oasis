@@ -17,22 +17,22 @@ const Index = () => {
   const featuredEvents = getFeaturedEvents();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-grow">
         <Hero />
         
         {/* Featured Events Section */}
-        <section id="featured-events" className="py-24 bg-white">
+        <section id="featured-events" className="py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-16">
               <div>
-                <h2 className="section-title text-balance">Featured Event Opportunities</h2>
+                <h2 className="section-title">Featured Event Opportunities</h2>
                 <p className="mt-4 text-xl text-muted-foreground max-w-2xl">
                   Popular events looking for brand sponsors
                 </p>
               </div>
-              <Button variant="outline" size="lg" asChild className="mt-6 lg:mt-0 text-primary border-primary">
+              <Button variant="outline" size="lg" asChild className="mt-6 lg:mt-0 text-primary border-primary hover:bg-primary/10">
                 <Link to="/events" className="flex items-center">
                   View All Events <ChevronRight className="ml-1 h-5 w-5" />
                 </Link>
@@ -67,9 +67,9 @@ const Index = () => {
         <TestimonialSection />
         
         {/* Call to Action with more prominent styling */}
-        <section className="py-24 bg-primary/5 relative overflow-hidden">
+        <section className="py-24 bg-muted/10 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="bg-white rounded-2xl overflow-hidden elevation-4">
+            <div className="glass-card rounded-2xl overflow-hidden">
               <CallToAction type="brand" />
             </div>
           </div>

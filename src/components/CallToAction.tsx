@@ -35,16 +35,16 @@ const CallToAction = ({ type }: CallToActionProps) => {
   return (
     <section className={`py-16 ${selected.backgroundClass}`}>
       <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold mb-6 text-white">{selected.title}</h2>
-        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold mb-6 text-white font-grotesk tracking-tight">{selected.title}</h2>
+        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
           {selected.description}
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button size="lg" asChild>
-            <Link to={selected.primaryLink}>{selected.primaryText}</Link>
+            <Link to={selected.primaryLink} className="font-medium tracking-wide">{selected.primaryText}</Link>
           </Button>
           <Button size="lg" variant="outline" asChild className="border-white/20">
-            <Link to={selected.secondaryLink}>{selected.secondaryText}</Link>
+            <Link to={selected.secondaryLink} className="font-medium tracking-wide">{selected.secondaryText}</Link>
           </Button>
         </div>
       </div>

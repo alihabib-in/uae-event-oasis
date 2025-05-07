@@ -43,7 +43,7 @@ const EventCard = ({
             <CalendarIcon className="h-4 w-4 mr-1 text-primary" />
             <span>{date}</span>
           </div>
-          <h3 className="text-xl font-bold mb-3 leading-tight text-balance text-white">{title}</h3>
+          <h3 className="text-xl font-bold mb-3 leading-tight text-balance text-white tracking-tight font-grotesk">{title}</h3>
           <div className="flex items-center text-muted-foreground text-sm mb-2">
             <MapPinIcon className="h-4 w-4 mr-1 text-accent" />
             <p>{location}</p>
@@ -52,7 +52,7 @@ const EventCard = ({
         <CardFooter className="border-t border-white/10 pt-4 pb-5 bg-muted/5">
           <div className="w-full">
             <p className="text-sm text-muted-foreground mb-1">Sponsorship Range:</p>
-            <p className="font-bold text-lg text-primary">
+            <p className="font-bold text-lg text-primary tracking-tight">
               AED {minBid.toLocaleString()} - {maxBid.toLocaleString()}
             </p>
           </div>

@@ -13,8 +13,7 @@ const Hero = () => {
               Connecting UAE Events with <span className="text-gradient">Brand Sponsors</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl">
-              sponsorby is the premier marketplace connecting event organizers
-              with brands looking for sponsorship opportunities across the UAE.
+              sponsorby is the premier marketplace providing brands high visibilty across the largest UAE events.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
               <Button size="lg" className="text-lg px-8 py-7 rounded-xl" asChild>

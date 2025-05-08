@@ -10,7 +10,7 @@ const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-balance leading-[1.1]">
-              Connect UAE Events with <span className="text-gradient">Brand Sponsors</span>
+              Connecting UAE Events with <span className="text-gradient">Brand Sponsors</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl">
               sponsorby is the premier marketplace connecting event organizers

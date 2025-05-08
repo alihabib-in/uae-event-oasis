@@ -57,7 +57,7 @@ const Hero = () => {
             </div>
             <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-xl flex items-center space-x-4 w-64">
               <div className="flex-shrink-0 h-12 w-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-lg">
-                5%
+                0%
               </div>
               <div>
                 <p className="text-sm font-medium text-white">Commission Fee</p>

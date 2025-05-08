@@ -35,6 +35,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'fkGrotesk';
+  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Bold.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     /* Light mode */

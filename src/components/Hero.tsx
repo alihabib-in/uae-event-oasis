@@ -43,11 +43,11 @@ const Hero = () => {
           </div>
           <div className="lg:col-span-2 relative animate-scale-in">
             <div className="aspect-[4/3] bg-card/40 rounded-2xl glass-card overflow-hidden">
-              <video autoplay loop muted playsinline>
-              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-              </video>
-              
+              <img
+                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
+                alt="UAE Events"
+                className="w-full h-full object-cover opacity-80"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end">
                 <div className="p-6 text-white">
                   <p className="text-lg font-semibold">Dubai International Conference</p>
@@ -57,7 +57,7 @@ const Hero = () => {
             </div>
             <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-xl flex items-center space-x-4 w-64">
               <div className="flex-shrink-0 h-12 w-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-lg">
-                0%
+                5%
               </div>
               <div>
                 <p className="text-sm font-medium text-white">Commission Fee</p>

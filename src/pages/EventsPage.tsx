@@ -47,13 +47,13 @@ const EventsPage = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-grow py-12 bg-gray-50">
+      <main className="flex-grow py-12 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-8 mb-8">
-            <h1 className="text-3xl font-bold mb-4">Discover Sponsorship Opportunities</h1>
-            <p className="text-lg text-gray-600 max-w-3xl">
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-8 mb-8 border border-white/5">
+            <h1 className="text-3xl font-bold mb-4 font-grotesk tracking-tight text-white">Discover Sponsorship Opportunities</h1>
+            <p className="text-lg text-gray-300 max-w-3xl">
               Browse through a curated selection of events across the UAE looking for brand sponsors.
               Find the perfect match for your marketing objectives and audience.
             </p>
@@ -62,8 +62,8 @@ const EventsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Filters */}
             <div className="lg:col-span-1">
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-20">
-                <h2 className="text-xl font-semibold mb-4">Filters</h2>
+              <div className="bg-card/40 backdrop-blur-sm p-6 rounded-lg border border-white/10 sticky top-20">
+                <h2 className="text-xl font-semibold mb-4 text-white font-grotesk">Filters</h2>
                 
                 <div className="mb-6">
                   <div className="relative">
@@ -71,14 +71,14 @@ const EventsPage = () => {
                     <Input
                       type="text"
                       placeholder="Search events..."
-                      className="pl-10"
+                      className="pl-10 bg-background/50 border-white/10"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                 </div>
 
-                <Accordion type="single" collapsible defaultValue="category">
+                <Accordion type="single" collapsible defaultValue="category" className="text-white">
                   <AccordionItem value="category">
                     <AccordionTrigger className="text-sm font-medium">
                       Event Category
@@ -94,7 +94,7 @@ const EventsPage = () => {
                             checked={selectedCategory === ""}
                             onChange={() => setSelectedCategory("")}
                           />
-                          <label htmlFor="all" className="ml-2 text-sm">
+                          <label htmlFor="all" className="ml-2 text-sm text-gray-300">
                             All Categories
                           </label>
                         </div>
@@ -108,7 +108,7 @@ const EventsPage = () => {
                               checked={selectedCategory === category}
                               onChange={() => setSelectedCategory(category)}
                             />
-                            <label htmlFor={category} className="ml-2 text-sm">
+                            <label htmlFor={category} className="ml-2 text-sm text-gray-300">
                               {category}
                             </label>
                           </div>
@@ -124,9 +124,9 @@ const EventsPage = () => {
                     <AccordionContent>
                       <div className="space-y-4 pt-2">
                         <div>
-                          <label className="text-sm mb-1 block">Min Budget (AED)</label>
+                          <label className="text-sm mb-1 block text-gray-300">Min Budget (AED)</label>
                           <Select onValueChange={(value) => setPriceRange([parseInt(value), priceRange[1]])}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-background/50 border-white/10">
                               <SelectValue placeholder="Min Budget" />
                             </SelectTrigger>
                             <SelectContent>
@@ -142,9 +142,9 @@ const EventsPage = () => {
                           </Select>
                         </div>
                         <div>
-                          <label className="text-sm mb-1 block">Max Budget (AED)</label>
+                          <label className="text-sm mb-1 block text-gray-300">Max Budget (AED)</label>
                           <Select onValueChange={(value) => setPriceRange([priceRange[0], parseInt(value)])}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-background/50 border-white/10">
                               <SelectValue placeholder="Max Budget" />
                             </SelectTrigger>
                             <SelectContent>
@@ -176,7 +176,7 @@ const EventsPage = () => {
                               type="checkbox"
                               className="h-4 w-4 text-primary rounded"
                             />
-                            <label htmlFor={location} className="ml-2 text-sm">
+                            <label htmlFor={location} className="ml-2 text-sm text-gray-300">
                               {location}
                             </label>
                           </div>
@@ -187,7 +187,7 @@ const EventsPage = () => {
                 </Accordion>
 
                 <Button className="w-full mt-6">Apply Filters</Button>
-                <Button variant="outline" className="w-full mt-2" onClick={() => {
+                <Button variant="outline" className="w-full mt-2 border-white/10" onClick={() => {
                   setSearchQuery("");
                   setSelectedCategory("");
                   setPriceRange([0, 1000000]);
@@ -200,11 +200,11 @@ const EventsPage = () => {
             {/* Event Listings */}
             <div className="lg:col-span-3">
               <div className="mb-6 flex justify-between items-center">
-                <p className="text-gray-500">
-                  Showing <span className="font-medium">{filteredEvents.length}</span> events
+                <p className="text-gray-300">
+                  Showing <span className="font-medium text-white">{filteredEvents.length}</span> events
                 </p>
                 <Select defaultValue="newest">
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[180px] bg-background/50 border-white/10">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,9 +217,9 @@ const EventsPage = () => {
               </div>
 
               {filteredEvents.length === 0 ? (
-                <div className="bg-white rounded-lg p-8 text-center border border-gray-200">
-                  <h3 className="text-xl font-medium mb-2">No events found</h3>
-                  <p className="text-gray-500 mb-4">
+                <div className="bg-card/40 backdrop-blur-sm rounded-lg p-8 text-center border border-white/10">
+                  <h3 className="text-xl font-medium mb-2 text-white">No events found</h3>
+                  <p className="text-gray-300 mb-4">
                     Try adjusting your filters to find more results.
                   </p>
                   <Button

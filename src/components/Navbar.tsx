@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <nav className="bg-background/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
@@ -44,6 +47,19 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-full"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-gray-300" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
             <Button variant="ghost">Sign In</Button>
             <Button>Sign Up</Button>
           </div>
@@ -98,6 +114,24 @@ const Navbar = () => {
           </div>
           <div className="pt-4 pb-3 border-t border-white/10">
             <div className="flex items-center px-4 space-x-3">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full w-full flex items-center justify-center space-x-2"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="h-5 w-5 text-gray-300" />
+                    <span className="text-gray-300">Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-5 w-5" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </Button>
               <Button variant="ghost" className="w-full">Sign In</Button>
               <Button className="w-full">Sign Up</Button>
             </div>

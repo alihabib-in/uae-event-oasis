@@ -5,8 +5,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 const StatsSection = () => {
   const brands = [
     {
-      name: "Tesla",
-      image: "https://images.unsplash.com/photo-1579828258588-43194f94aecd?w=250&h=250&fit=crop&auto=format&q=80",
+      name: "Emaar",
+      image: "https://brandlogos.net/wp-content/uploads/2025/04/emaar_properties-logo_brandlogos.net_aegka-300x62.png?w=250&h=250&fit=crop&auto=format&q=80",
     },
     {
       name: "Apple",

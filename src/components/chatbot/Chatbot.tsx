@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, SendHorizontal } from 'lucide-react';
-import { useChatbot } from './ChatbotProvider';
+import { useChatbot } from './useChatbotContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ export const Chatbot = () => {
     addMessage({
       content: input.trim(),
       sender: 'user',
-      timestamp: Date.now(), // Adding timestamp here to fix the error
+      timestamp: Date.now(),
     });
     
     setInput('');

@@ -1,19 +1,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Search, Users, Database } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const Hero = () => {
   return (
-    <div className="hero-gradient min-h-[92vh] flex items-center">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+    <div className="hero-gradient min-h-[92vh] flex items-center relative overflow-hidden">
+      {/* Video Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <video 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source 
+            src="https://player.vimeo.com/progressive_redirect/playback/701482499/rendition/720p/file.mp4?loc=external&signature=f2e40d4e304b6e86cdedf2cbc8ed0fd42aac5fd2355fc8a2ccc2328981248ec3" 
+            type="video/mp4" 
+          />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-balance leading-[1.1]">
-              Connecting UAE Events with <span className="text-gradient">Brand Sponsors</span>
+            <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-8 text-balance leading-[1.1] text-white">
+              Connecting UAE Events with <span className="text-gradient font-medium">Brand Sponsors</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl">
-              sponsorby is the premier marketplace providing brands high visibilty across the largest UAE events.
+            <p className="text-xl text-white/80 mb-12 leading-relaxed max-w-2xl font-light">
+              sponsorby is the premier marketplace providing brands high visibility across the largest UAE events.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
               <Button size="lg" className="text-lg px-8 py-7 rounded-xl" asChild>
@@ -24,18 +42,21 @@ const Hero = () => {
               </Button>
             </div>
             <div className="mt-12 flex items-center">
-              <div className="flex -space-x-2">
-                <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                  <span className="text-xs font-bold">AE</span>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-secondary text-white flex items-center justify-center">
-                  <span className="text-xs font-bold">DB</span>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-accent text-white flex items-center justify-center">
-                  <span className="text-xs font-bold">SJ</span>
-                </div>
+              <div className="flex flex-wrap gap-4">
+                {brands.map((brand, index) => (
+                  <div 
+                    key={index} 
+                    className="h-10 w-auto flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-lg px-2 hover:bg-white/20 transition-all duration-300"
+                  >
+                    <img 
+                      src={brand.logo} 
+                      alt={brand.name} 
+                      className="h-6 object-contain" 
+                    />
+                  </div>
+                ))}
               </div>
-              <span className="ml-4 text-sm text-gray-300">
+              <span className="ml-4 text-sm text-white/70">
                 <span className="font-semibold text-white">200+ </span> 
                 organizers trust our platform
               </span>
@@ -43,17 +64,19 @@ const Hero = () => {
           </div>
           <div className="lg:col-span-2 relative animate-scale-in">
             <div className="aspect-[4/3] bg-card/40 rounded-2xl glass-card overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
-                alt="UAE Events"
-                className="w-full h-full object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end">
-                <div className="p-6 text-white">
+              {/* Event card content */}
+              <div className="absolute inset-0 flex items-end">
+                <div className="p-6 text-white bg-gradient-to-t from-black/80 via-black/40 to-transparent w-full">
                   <p className="text-lg font-semibold">Dubai International Conference</p>
                   <p className="text-sm opacity-90">Featured Event</p>
+                  <div className="mt-2 flex items-center">
+                    <span className="text-xs text-white/70">Starting at </span>
+                    <span className="ml-1 font-semibold">AED 5,000</span>
+                  </div>
                 </div>
               </div>
+              {/* Animated overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 mix-blend-overlay animate-pulse"></div>
             </div>
             <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-xl flex items-center space-x-4 w-64">
               <div className="flex-shrink-0 h-12 w-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -75,5 +98,25 @@ const Hero = () => {
     </div>
   );
 };
+
+// Sample brand logos
+const brands = [
+  {
+    name: "Etihad Airways",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Etihad_Airways_logo_2014.svg/512px-Etihad_Airways_logo_2014.svg.png"
+  },
+  {
+    name: "Emirates",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Emirates_logo.svg/512px-Emirates_logo.svg.png"
+  },
+  {
+    name: "Dubai Holding",
+    logo: "https://www.dubaiholding.com/wp-content/themes/dubai-holding/assets/icons/dh-logo-white.svg"
+  },
+  {
+    name: "Emaar",
+    logo: "https://www.emaar.com/assets/images/footer/emaar-logo-white.png"
+  }
+];
 
 export default Hero;

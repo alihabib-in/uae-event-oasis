@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
 const Navbar = () => {
@@ -15,9 +14,40 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold">
-                <span className="text-gradient">sponsor</span><span className="text-primary">by</span>
-              </span>
+              {/* Redesigned logo */}
+              <div className="flex items-center">
+                <div className="relative">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                    {/* Abstract S shape */}
+                    <path 
+                      d="M6 16C6 10.4772 10.4772 6 16 6C21.5228 6 26 10.4772 26 16C26 21.5228 21.5228 26 16 26" 
+                      stroke="url(#paint0_linear)" 
+                      strokeWidth="3" 
+                      strokeLinecap="round"
+                    />
+                    <path 
+                      d="M16 26C13.7909 26 12 24.2091 12 22C12 19.7909 13.7909 18 16 18C18.2091 18 20 16.2091 20 14C20 11.7909 18.2091 10 16 10" 
+                      stroke="url(#paint1_linear)" 
+                      strokeWidth="3" 
+                      strokeLinecap="round"
+                    />
+                    <defs>
+                      <linearGradient id="paint0_linear" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#1EAEDB" />
+                        <stop offset="1" stopColor="#8B5CF6" />
+                      </linearGradient>
+                      <linearGradient id="paint1_linear" x1="12" y1="18" x2="20" y2="18" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#8B5CF6" />
+                        <stop offset="1" stopColor="#F97316" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute -right-1 -top-1 h-2 w-2 bg-accent rounded-full animate-pulse"></div>
+                </div>
+                <span className="text-2xl font-light ml-1">
+                  <span className="text-gradient">sponsor</span><span className="text-primary font-medium">by</span>
+                </span>
+              </div>
             </Link>
             <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
               <Link
@@ -71,19 +101,16 @@ const Navbar = () => {
             >
               <span className="sr-only">Open main menu</span>
               {!isMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Menu className="h-6 w-6" />
               ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="h-6 w-6" />
               )}
             </button>
           </div>
         </div>
       </div>
 
+      {/* Keep existing mobile menu code */}
       {isMenuOpen && (
         <div className="sm:hidden bg-background/95 backdrop-blur-md">
           <div className="pt-2 pb-3 space-y-1">

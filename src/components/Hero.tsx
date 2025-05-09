@@ -110,7 +110,7 @@ const brands = [
     logo: "https://logolook.net/wp-content/uploads/2021/01/Emirates-Logo.png"
   },
   {
-    name: "NBD,
+    name: "NBD",
     logo: "https://www.reemmall.ae/wp-content/uploads/2023/10/EMIRATESNBD.AE_BIG-5d0a63c2.png"
   },
   {

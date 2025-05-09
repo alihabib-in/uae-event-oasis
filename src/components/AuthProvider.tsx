@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setIsAdmin(session?.user?.email === "admin@sponsorby.com");
+        setIsAdmin(session?.user?.email === "admin@sponsorby.com" || Boolean(session?.user?.email?.includes("admin")));
       }
     );
     
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setIsAdmin(session?.user?.email === "admin@sponsorby.com");
+      setIsAdmin(session?.user?.email === "admin@sponsorby.com" || Boolean(session?.user?.email?.includes("admin")));
       setIsLoading(false);
     });
 

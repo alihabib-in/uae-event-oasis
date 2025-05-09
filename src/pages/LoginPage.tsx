@@ -53,10 +53,10 @@ const LoginPage = () => {
     
     try {
       // For the admin user, use hardcoded credentials
-      if (values.username === "test1" && values.password === "pass1") {
+      if (values.username === "admin" && values.password === "admin123") {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: "admin@sponsorby.com",
-          password: values.password,
+          password: "admin123",
         });
         
         if (error) throw error;
@@ -64,7 +64,7 @@ const LoginPage = () => {
         toast.success("Admin login successful!");
         navigate("/admin");
       } else {
-        toast.error("Invalid credentials");
+        toast.error("Invalid admin credentials");
       }
     } catch (error: any) {
       toast.error(error.message || "Login failed");
@@ -122,6 +122,9 @@ const LoginPage = () => {
                   </FormItem>
                 )}
               />
+              <div className="text-sm text-muted-foreground mt-2">
+                <p>For demo: Username: <strong>admin</strong>, Password: <strong>admin123</strong></p>
+              </div>
               <Button
                 type="submit"
                 className="w-full"

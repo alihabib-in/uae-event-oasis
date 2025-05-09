@@ -57,6 +57,34 @@ const AuthPage = () => {
     setIsLoading(true);
     
     try {
+      // Create a test user if they don't exist yet (for demo purposes)
+      const testEmail = "test@example.com";
+      const testPassword = "password123";
+      
+      if (values.email === testEmail) {
+        // Check if test user exists
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', testEmail)
+          .single();
+          
+        // If test user doesn't exist yet, create one
+        if (!existingUser) {
+          const { data, error: signUpError } = await supabase.auth.signUp({
+            email: testEmail,
+            password: testPassword,
+            options: {
+              data: {
+                full_name: 'Test User',
+              }
+            }
+          });
+          
+          if (signUpError) console.error("Error creating test user:", signUpError);
+        }
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
@@ -74,6 +102,8 @@ const AuthPage = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "Login failed");
+      // Display a help message for the demo
+      toast.info("For demo: try email: test@example.com, password: password123");
     } finally {
       setIsLoading(false);
     }
@@ -235,6 +265,9 @@ const AuthPage = () => {
                         </FormItem>
                       )}
                     />
+                    <div className="text-sm text-muted-foreground">
+                      <p>For demo: Email: <strong>test@example.com</strong>, Password: <strong>password123</strong></p>
+                    </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign In"} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>

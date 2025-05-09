@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Provider } from "@supabase/supabase-js";
+import type { Provider } from "@supabase/supabase-js";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -57,48 +57,64 @@ const AuthPage = () => {
     setIsLoading(true);
     
     try {
-      // Create a test user if they don't exist yet (for demo purposes)
+      // Special handling for the demo test user
       const testEmail = "test@example.com";
       const testPassword = "password123";
       
-      if (values.email === testEmail) {
-        // Check if test user exists
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', testEmail)
-          .single();
-          
-        // If test user doesn't exist yet, create one
-        if (!existingUser) {
-          const { data, error: signUpError } = await supabase.auth.signUp({
+      if (values.email === testEmail && values.password === testPassword) {
+        // For demo purposes, create a test user if this is their first login attempt
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
             email: testEmail,
             password: testPassword,
-            options: {
-              data: {
-                full_name: 'Test User',
-              }
-            }
           });
           
-          if (signUpError) console.error("Error creating test user:", signUpError);
+          if (error && error.message.includes("Invalid login")) {
+            // Create the test user if login fails
+            const { error: signUpError } = await supabase.auth.signUp({
+              email: testEmail,
+              password: testPassword,
+              options: {
+                data: {
+                  full_name: 'Test User',
+                }
+              }
+            });
+            
+            if (signUpError) {
+              throw signUpError;
+            } else {
+              toast.success("Test account created! Please try logging in again.");
+              return;
+            }
+          }
+          
+          if (!error) {
+            toast.success("Login successful!");
+            navigate("/");
+          } else {
+            throw error;
+          }
+        } catch (error: any) {
+          toast.error(error.message || "Login failed");
         }
-      }
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-      
-      if (error) throw error;
-      
-      toast.success("Login successful!");
-      
-      // If the email includes "admin", go to admin page
-      if (values.email.includes("admin")) {
-        navigate("/admin");
       } else {
-        navigate("/");
+        // Regular login flow for non-test users
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+        
+        if (error) throw error;
+        
+        toast.success("Login successful!");
+        
+        // If the email includes "admin", go to admin page
+        if (values.email.includes("admin")) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Login failed");

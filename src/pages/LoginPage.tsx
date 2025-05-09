@@ -48,12 +48,63 @@ const LoginPage = () => {
     }
   }, [location]);
 
+  const createAdminUserIfNeeded = async () => {
+    try {
+      // First try to sign in with admin credentials
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: "admin@sponsorby.com",
+        password: "admin123",
+      });
+      
+      // If sign in fails because user doesn't exist, create the admin user
+      if (signInError && signInError.message.includes("Invalid login credentials")) {
+        console.log("Admin user doesn't exist. Creating...");
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: "admin@sponsorby.com",
+          password: "admin123",
+          options: {
+            data: {
+              full_name: 'Admin User',
+            }
+          }
+        });
+        
+        if (signUpError) {
+          console.error("Error creating admin user:", signUpError);
+          return false;
+        }
+        
+        toast.success("Admin account created successfully!");
+        return true;
+      } else if (signInData?.user) {
+        // User exists and sign in successful
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error checking/creating admin user:", error);
+      return false;
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     
     try {
       // For the admin user, use hardcoded credentials
       if (values.username === "admin" && values.password === "admin123") {
+        // Check if admin user exists, create if not
+        const adminUserReady = await createAdminUserIfNeeded();
+        
+        if (!adminUserReady) {
+          toast.error("Failed to set up admin user. Please try again.");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Now try to sign in with the admin credentials
         const { data, error } = await supabase.auth.signInWithPassword({
           email: "admin@sponsorby.com",
           password: "admin123",

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import * as React from "react";
 
 type Theme = "dark" | "light";
 
@@ -10,9 +10,11 @@ type ThemeContextType = {
   toggleTheme: () => void;
 };
 
+// Create the context with a default undefined value
 const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Use React.useState explicitly instead of destructured useState
   const [theme, setTheme] = React.useState<Theme>(() => {
     // Try to get theme from localStorage, but handle SSR case
     if (typeof window !== "undefined") {
@@ -22,6 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return "dark";
   });
 
+  // Ensure this useEffect only runs in the browser
   React.useEffect(() => {
     // Apply theme class to document element
     const root = window.document.documentElement;

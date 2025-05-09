@@ -13,6 +13,10 @@ export interface StepProps extends React.HTMLAttributes<HTMLDivElement> {
   description?: string;
   status?: "complete" | "in-progress" | "upcoming";
   icon?: React.ReactNode;
+  // Make these optional since they'll be added by the parent Steps component
+  isLastStep?: boolean;
+  isFirstStep?: boolean;
+  index?: number;
 }
 
 export function Steps({
@@ -30,22 +34,26 @@ export function Steps({
       className={cn("flex w-full gap-2", className)}
       {...props}
     >
-      {steps.map((step, index) => {
+      {steps.map((step, idx) => {
         let stepStatus: "complete" | "in-progress" | "upcoming" = "upcoming";
         
-        if (index < currentStep) {
+        if (idx < currentStep) {
           stepStatus = "complete";
-        } else if (index === currentStep) {
+        } else if (idx === currentStep) {
           stepStatus = "in-progress";
         }
         
-        return React.cloneElement(step, {
-          key: index,
+        // Create a properly typed set of props to pass to the cloned element
+        const stepProps: Partial<StepProps> = {
           status: step.props.status || stepStatus,
-          index: index,
-          isLastStep: index === totalSteps - 1,
-          isFirstStep: index === 0,
-          ...step.props
+          isLastStep: idx === totalSteps - 1,
+          isFirstStep: idx === 0,
+          index: idx,
+        };
+        
+        return React.cloneElement(step, {
+          key: idx,
+          ...stepProps
         });
       })}
     </div>
@@ -62,11 +70,7 @@ export function Step({
   index,
   className,
   ...props
-}: StepProps & {
-  isLastStep?: boolean;
-  isFirstStep?: boolean;
-  index?: number;
-}) {
+}: StepProps) {
   return (
     <div 
       className={cn(
@@ -87,7 +91,7 @@ export function Step({
           {status === "complete" ? (
             <CheckIcon className="h-4 w-4" />
           ) : (
-            icon || <span className="text-xs">{(index || 0) + 1}</span>
+            icon || <span className="text-xs">{(index !== undefined ? index : 0) + 1}</span>
           )}
         </div>
         {!isLastStep && (

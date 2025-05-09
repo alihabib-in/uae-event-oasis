@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,6 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Update the schema to use z.coerce.number() for numeric fields
 const formSchema = z.object({
   brandName: z.string().min(2, {
     message: "Brand name must be at least 2 characters.",
@@ -58,11 +58,9 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  bidAmount: z.string()
-    .refine(val => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Bid amount must be a positive number",
-    })
-    .transform(val => Number(val)),
+  bidAmount: z.coerce.number().positive({
+    message: "Bid amount must be a positive number",
+  }),
   message: z.string().optional(),
 });
 
@@ -86,7 +84,7 @@ const SubmitBidPage = () => {
       contactName: "",
       phone: "",
       email: "",
-      bidAmount: "",
+      bidAmount: 0,
       message: "",
     },
   });

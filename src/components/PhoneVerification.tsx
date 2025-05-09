@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -116,7 +115,7 @@ export default function PhoneVerification({
               render={({ slots }) => (
                 <InputOTPGroup>
                   {slots.map((slot, index) => (
-                    <InputOTPSlot key={index} {...slot} />
+                    <InputOTPSlot key={index} {...slot} index={index} />
                   ))}
                 </InputOTPGroup>
               )}

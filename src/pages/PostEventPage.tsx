@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -47,6 +46,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Define the form schema with proper number conversion for numeric fields
 const formSchema = z.object({
   eventName: z.string().min(2, {
     message: "Event name must be at least 2 characters.",
@@ -78,21 +78,15 @@ const formSchema = z.object({
   sponsorshipNeeds: z.string().min(10, {
     message: "Please describe your sponsorship needs.",
   }),
-  attendees: z.string()
-    .refine(val => !isNaN(Number(val)), {
-      message: "Attendees must be a number",
-    })
-    .transform(val => Number(val)),
-  minBid: z.string()
-    .refine(val => !isNaN(Number(val)), {
-      message: "Minimum bid must be a number",
-    })
-    .transform(val => Number(val)),
-  maxBid: z.string()
-    .refine(val => !isNaN(Number(val)), {
-      message: "Maximum bid must be a number",
-    })
-    .transform(val => Number(val)),
+  attendees: z.coerce.number().positive({
+    message: "Attendees must be a positive number",
+  }),
+  minBid: z.coerce.number().positive({
+    message: "Minimum bid must be a positive number",
+  }),
+  maxBid: z.coerce.number().positive({
+    message: "Maximum bid must be a positive number",
+  }),
   venue: z.string().min(2, {
     message: "Venue must be at least 2 characters.",
   }),
@@ -120,9 +114,9 @@ const PostEventPage = () => {
       organizerCompany: "",
       sponsorshipNeeds: "",
       venue: "",
-      attendees: "",
-      minBid: "",
-      maxBid: "",
+      attendees: 0,
+      minBid: 0,
+      maxBid: 0,
     },
   });
 

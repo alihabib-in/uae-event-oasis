@@ -37,9 +37,21 @@ const App = () => (
                 <Route path="/events/:eventId" element={<EventDetail />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/post-event" element={<PostEventPage />} />
-                <Route path="/submit-bid/:eventId" element={<SubmitBidPage />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/post-event" element={
+                  <ProtectedRoute>
+                    <PostEventPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/submit-bid/:eventId" element={
+                  <ProtectedRoute>
+                    <SubmitBidPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="/for-brands" element={<ForBrandsPage />} />
                 <Route path="/for-organizers" element={<ForOrganizersPage />} />
                 <Route path="*" element={<NotFound />} />

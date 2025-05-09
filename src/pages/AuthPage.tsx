@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Mail, Lock, ArrowRight, Github, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -31,6 +32,7 @@ const signupSchema = z.object({
 
 const AuthPage = () => {
   const [activeTab, setActiveTab] = useState("login");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -50,32 +52,73 @@ const AuthPage = () => {
     },
   });
 
-  const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
-    // In a real application, this would connect to your auth service
-    console.log("Login form submitted:", values);
+  const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
     
-    // For demo purposes, let's just show a success message and redirect
-    toast.success("Login successful!");
-    
-    // If the email includes "admin", go to admin page (just for demo)
-    if (values.email.includes("admin")) {
-      navigate("/admin");
-    } else {
-      navigate("/");
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Login successful!");
+      
+      // If the email includes "admin", go to admin page
+      if (values.email.includes("admin")) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const onSignupSubmit = (values: z.infer<typeof signupSchema>) => {
-    // In a real application, this would connect to your auth service
-    console.log("Signup form submitted:", values);
+  const onSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
+    setIsLoading(true);
     
-    toast.success("Account created successfully! Please check your email to verify your account.");
-    setActiveTab("login");
+    try {
+      // Set name in the user metadata
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            full_name: values.name,
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      setActiveTab("login");
+    } catch (error: any) {
+      toast.error(error.message || "Signup failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSSOLogin = (provider: string) => {
-    toast.info(`Logging in with ${provider}...`);
-    // In a real application, this would redirect to the OAuth provider
+  const handleSSOLogin = async (provider: 'google' | 'microsoft') => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Redirect is handled by Supabase Auth
+    } catch (error: any) {
+      toast.error(`${provider} login failed: ${error.message}`);
+    }
   };
 
   return (
@@ -119,7 +162,7 @@ const AuthPage = () => {
             <TabsContent value="login" className="mt-0">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin("Google")}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('google')}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -128,7 +171,7 @@ const AuthPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin("Microsoft")}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('microsoft')}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -182,8 +225,8 @@ const AuthPage = () => {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full">
-                      Sign In <ArrowRight className="ml-2 h-4 w-4" />
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Signing in..." : "Sign In"} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </form>
                 </Form>
@@ -199,7 +242,7 @@ const AuthPage = () => {
             <TabsContent value="signup" className="mt-0">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin("Google")}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('google')}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -208,7 +251,7 @@ const AuthPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin("Microsoft")}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('microsoft')}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -278,8 +321,8 @@ const AuthPage = () => {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full">
-                      Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Creating Account..." : "Create Account"} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </form>
                 </Form>
@@ -292,7 +335,8 @@ const AuthPage = () => {
                   and{" "}
                   <Link to="/privacy" className="underline underline-offset-4 hover:text-primary">
                     Privacy Policy
-                  </Link>.
+                  </Link>
+                  .
                 </div>
               </div>
             </TabsContent>

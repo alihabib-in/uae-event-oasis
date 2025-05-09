@@ -39,7 +39,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hi there! I'm your sponsorby assistant. Are you looking to sponsor an event or find sponsors for your event?',
+      content: "Hi there! I'm your sponsorby assistant. Are you looking to sponsor an event or find sponsors for your event?",
       sender: 'bot',
       timestamp: Date.now(),
     },
@@ -77,7 +77,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
         setUserType('brand');
         setTimeout(() => {
           addMessage({
-            content: 'Great! I understand you're representing a brand looking to sponsor events. What type of events are you interested in sponsoring?',
+            content: "Great! I understand you're representing a brand looking to sponsor events. What type of events are you interested in sponsoring?",
             sender: 'bot',
           });
         }, 500);
@@ -93,7 +93,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
         setUserType('event_organizer');
         setTimeout(() => {
           addMessage({
-            content: 'Excellent! I understand you're organizing an event and looking for sponsors. Could you tell me a bit more about your event?',
+            content: "Excellent! I understand you're organizing an event and looking for sponsors. Could you tell me a bit more about your event?",
             sender: 'bot',
           });
         }, 500);
@@ -110,7 +110,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
       // Still trying to determine user type
       setTimeout(() => {
         addMessage({
-          content: 'I'd like to help you better. Could you tell me if you're looking to sponsor events or find sponsors for your event?',
+          content: "I'd like to help you better. Could you tell me if you're looking to sponsor events or find sponsors for your event?",
           sender: 'bot',
         });
       }, 500);
@@ -188,7 +188,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
     ) {
       setTimeout(() => {
         addMessage({
-          content: 'You can list your event by clicking on the "Post Your Event" button in the navigation bar. You'll need to provide details about your event, available sponsorship opportunities, and your contact information.',
+          content: 'You can list your event by clicking on the "Post Your Event" button in the navigation bar. You\'ll need to provide details about your event, available sponsorship opportunities, and your contact information.',
           sender: 'bot',
         });
       }, 800);
@@ -218,7 +218,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
     ) {
       setTimeout(() => {
         addMessage({
-          content: 'The timeline varies depending on your event and the types of sponsors you're looking for. Typically, we recommend listing your event at least 3-6 months before the date to give sponsors enough time to plan. Many sponsors start seeing your listing within 24 hours of posting.',
+          content: "The timeline varies depending on your event and the types of sponsors you're looking for. Typically, we recommend listing your event at least 3-6 months before the date to give sponsors enough time to plan. Many sponsors start seeing your listing within 24 hours of posting.",
           sender: 'bot',
         });
       }, 800);

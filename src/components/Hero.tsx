@@ -17,7 +17,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
         >
           <source 
-            src="https://player.vimeo.com/progressive_redirect/playback/701482499/rendition/720p/file.mp4?loc=external&signature=f2e40d4e304b6e86cdedf2cbc8ed0fd42aac5fd2355fc8a2ccc2328981248ec3" 
+            src="https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot" 
             type="video/mp4" 
           />
           Your browser does not support the video tag.

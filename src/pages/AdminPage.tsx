@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,68 +8,168 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { BarChart, Tag, Users, Calendar, Edit, Trash2, Plus, Search, Info } from "lucide-react";
+import { BarChart, Tag, Users, Calendar, Edit, Trash2, Plus, Search, Info, Mail, Check, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-// Sample Data
-import { sponsorshipTypes, brandInquiries, eventOrganizers } from "../data/adminData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
+import { Navigate } from "react-router-dom";
 
 const AdminPage = () => {
+  const { user, isAdmin, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [packages, setPackages] = useState(sponsorshipTypes);
-  const [editingPackage, setEditingPackage] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [events, setEvents] = useState<any[]>([]);
+  const [bids, setBids] = useState<any[]>([]);
+  const [adminSettings, setAdminSettings] = useState<any>(null);
+  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const onSubmit = (data: any) => {
-    if (editingPackage) {
-      // Update existing package
-      setPackages(packages.map(pkg => 
-        pkg.id === editingPackage.id ? { ...pkg, ...data } : pkg
-      ));
-      toast.success("Package updated successfully!");
-    } else {
-      // Add new package
-      setPackages([...packages, { 
-        id: Date.now().toString(),
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        features: data.features.split(',').map((f: string) => f.trim()),
-        active: true
-      }]);
-      toast.success("New package added successfully!");
+  const fetchData = async () => {
+    setIsFetching(true);
+    try {
+      // Fetch events
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (eventsError) throw eventsError;
+      setEvents(eventsData || []);
+      
+      // Fetch bids
+      const { data: bidsData, error: bidsError } = await supabase
+        .from('bids')
+        .select('*, events(*)')
+        .order('created_at', { ascending: false });
+      
+      if (bidsError) throw bidsError;
+      setBids(bidsData || []);
+      
+      // Fetch admin settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
+      
+      if (settingsData) {
+        setAdminSettings(settingsData);
+        setNotificationEmails(settingsData.notification_emails || []);
+      }
+    } catch (error: any) {
+      console.error('Error fetching data:', error);
+      toast.error(`Error fetching data: ${error.message}`);
+    } finally {
+      setIsFetching(false);
     }
-    setEditingPackage(null);
-    reset();
   };
 
-  const handleEdit = (pkg: any) => {
-    setEditingPackage(pkg);
-    reset({
-      name: pkg.name,
-      description: pkg.description,
-      price: pkg.price,
-      features: pkg.features.join(', ')
-    });
+  const addEmail = () => {
+    if (!newEmail) return;
+    
+    if (!newEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
+    if (notificationEmails.includes(newEmail)) {
+      toast.error("Email already exists");
+      return;
+    }
+    
+    setNotificationEmails([...notificationEmails, newEmail]);
+    setNewEmail("");
   };
 
-  const handleDelete = (id: string) => {
-    setPackages(packages.filter(pkg => pkg.id !== id));
-    toast.success("Package deleted successfully!");
+  const removeEmail = (email: string) => {
+    setNotificationEmails(notificationEmails.filter(e => e !== email));
   };
 
-  const filterInquiries = (items: any[]) => {
+  const saveEmailSettings = async () => {
+    setIsUpdating(true);
+    try {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .update({
+          notification_emails: notificationEmails,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', adminSettings.id);
+      
+      if (error) throw error;
+      
+      toast.success("Notification emails updated successfully");
+    } catch (error: any) {
+      console.error('Error updating settings:', error);
+      toast.error(`Error updating settings: ${error.message}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updateEventStatus = async (eventId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ status })
+        .eq('id', eventId);
+      
+      if (error) throw error;
+      
+      toast.success(`Event ${status === 'approved' ? 'approved' : 'rejected'}`);
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      console.error('Error updating event status:', error);
+      toast.error(`Error updating event: ${error.message}`);
+    }
+  };
+
+  const updateBidStatus = async (bidId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('bids')
+        .update({ status })
+        .eq('id', bidId);
+      
+      if (error) throw error;
+      
+      toast.success(`Bid ${status === 'approved' ? 'approved' : 'rejected'}`);
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      console.error('Error updating bid status:', error);
+      toast.error(`Error updating bid: ${error.message}`);
+    }
+  };
+
+  const filterData = (items: any[]) => {
     if (!searchQuery) return items;
     return items.filter(item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.company.toLowerCase().includes(searchQuery.toLowerCase())
+      Object.values(item).some(value => 
+        typeof value === 'string' && value.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     );
   };
+
+  // If still loading auth state, show loading
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+  
+  // If not admin, redirect to login
+  if (!isAdmin) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,28 +191,28 @@ const AdminPage = () => {
               Dashboard
             </Button>
             <Button 
-              variant={activeTab === "sponsorships" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("sponsorships")}
-            >
-              <Tag className="mr-2 h-4 w-4" />
-              Sponsorship Packages
-            </Button>
-            <Button 
-              variant={activeTab === "inquiries" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("inquiries")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Inquiries
-            </Button>
-            <Button 
               variant={activeTab === "events" ? "default" : "ghost"} 
               className="w-full justify-start" 
               onClick={() => setActiveTab("events")}
             >
               <Calendar className="mr-2 h-4 w-4" />
               Events
+            </Button>
+            <Button 
+              variant={activeTab === "bids" ? "default" : "ghost"} 
+              className="w-full justify-start" 
+              onClick={() => setActiveTab("bids")}
+            >
+              <Tag className="mr-2 h-4 w-4" />
+              Sponsorship Bids
+            </Button>
+            <Button 
+              variant={activeTab === "settings" ? "default" : "ghost"} 
+              className="w-full justify-start" 
+              onClick={() => setActiveTab("settings")}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Notification Settings
             </Button>
           </div>
 
@@ -146,7 +246,13 @@ const AdminPage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button size="sm">Help</Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => fetchData()}
+                  disabled={isFetching}
+                >
+                  {isFetching ? 'Refreshing...' : 'Refresh'}
+                </Button>
               </div>
             </div>
           </header>
@@ -158,41 +264,42 @@ const AdminPage = () => {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Total Brand Inquiries
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{brandInquiries.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        +12% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
                         Total Events
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold">{eventOrganizers.length}</div>
+                      <div className="text-3xl font-bold">{events.length}</div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        +5% from last month
+                        {events.filter(e => e.status === 'approved').length} approved events
                       </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Active Sponsorships
+                        Total Bids
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">{bids.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {bids.filter(b => b.status === 'approved').length} approved bids
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Pending Approvals
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold">
-                        {packages.filter(p => p.active).length}
+                        {events.filter(e => e.status === 'pending').length + 
+                         bids.filter(b => b.status === 'pending').length}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {packages.length} total packages available
+                        {events.filter(e => e.status === 'pending').length} events, {bids.filter(b => b.status === 'pending').length} bids
                       </p>
                     </CardContent>
                   </Card>
@@ -201,51 +308,22 @@ const AdminPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Recent Brand Inquiries</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {brandInquiries.slice(0, 3).map((inquiry, index) => (
-                          <div key={index} className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback>{inquiry.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-sm font-medium">{inquiry.name}</p>
-                                <p className="text-xs text-muted-foreground">{inquiry.company}</p>
-                              </div>
-                            </div>
-                            <Badge variant="secondary">AED {inquiry.budget.toLocaleString()}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab("inquiries")}>
-                        View all
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
                       <CardTitle>Recent Events</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {eventOrganizers.slice(0, 3).map((event, index) => (
-                          <div key={index} className="flex items-center justify-between">
+                        {events.slice(0, 3).map((event) => (
+                          <div key={event.id} className="flex items-center justify-between">
                             <div className="flex items-center">
                               <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback>{event.company.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{event.organizer_name.substring(0, 2).toUpperCase()}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-sm font-medium">{event.eventName}</p>
-                                <p className="text-xs text-muted-foreground">{event.company}</p>
+                                <p className="text-sm font-medium">{event.title}</p>
+                                <p className="text-xs text-muted-foreground">{event.organizer_name}</p>
                               </div>
                             </div>
-                            <Badge>{event.sponsorshipType}</Badge>
+                            <Badge variant={event.status === 'pending' ? 'outline' : (event.status === 'approved' ? 'default' : 'destructive')}>{event.status}</Badge>
                           </div>
                         ))}
                       </div>
@@ -256,309 +334,306 @@ const AdminPage = () => {
                       </Button>
                     </CardFooter>
                   </Card>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "sponsorships" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-light">Sponsorship Packages</h2>
-                  <Button onClick={() => { setEditingPackage(null); reset(); }}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Package
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <div className="space-y-4">
-                      {packages.map((pkg) => (
-                        <Card key={pkg.id}>
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Bids</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {bids.slice(0, 3).map((bid) => (
+                          <div key={bid.id} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-2">
+                                <AvatarFallback>{bid.brand_name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                              </Avatar>
                               <div>
-                                <CardTitle>{pkg.name}</CardTitle>
-                                <CardDescription>{pkg.description}</CardDescription>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleEdit(pkg)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleDelete(pkg.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <p className="text-sm font-medium">{bid.brand_name}</p>
+                                <p className="text-xs text-muted-foreground">{bid.events?.title || 'Unknown Event'}</p>
                               </div>
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex justify-between items-center mb-4">
-                              <div className="text-2xl font-bold">
-                                AED {Number(pkg.price).toLocaleString()}
-                              </div>
-                              <Switch
-                                checked={pkg.active}
-                                onCheckedChange={(checked) => {
-                                  setPackages(
-                                    packages.map((p) =>
-                                      p.id === pkg.id ? { ...p, active: checked } : p
-                                    )
-                                  );
-                                }}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              {pkg.features.map((feature: string, i: number) => (
-                                <div key={i} className="flex items-center gap-2">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                                  <span className="text-sm">{feature}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>
-                          {editingPackage ? "Edit Package" : "Create Package"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="name">Package Name</Label>
-                            <Input
-                              id="name"
-                              {...register("name", { required: "Name is required" })}
-                            />
-                            {errors.name && (
-                              <p className="text-xs text-destructive">
-                                {errors.name.message?.toString()}
-                              </p>
-                            )}
+                            <Badge variant={bid.status === 'pending' ? 'outline' : (bid.status === 'approved' ? 'default' : 'destructive')}>
+                              {bid.status}
+                            </Badge>
                           </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Input
-                              id="description"
-                              {...register("description", {
-                                required: "Description is required",
-                              })}
-                            />
-                            {errors.description && (
-                              <p className="text-xs text-destructive">
-                                {errors.description.message?.toString()}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="price">Price (AED)</Label>
-                            <Input
-                              id="price"
-                              type="number"
-                              {...register("price", {
-                                required: "Price is required",
-                                min: { value: 0, message: "Price must be positive" },
-                              })}
-                            />
-                            {errors.price && (
-                              <p className="text-xs text-destructive">
-                                {errors.price.message?.toString()}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="features">
-                              Features (comma-separated)
-                            </Label>
-                            <Input
-                              id="features"
-                              {...register("features", {
-                                required: "Features are required",
-                              })}
-                            />
-                            {errors.features && (
-                              <p className="text-xs text-destructive">
-                                {errors.features.message?.toString()}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex justify-between pt-4">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingPackage(null);
-                                reset();
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button type="submit">
-                              {editingPackage ? "Update" : "Create"} Package
-                            </Button>
-                          </div>
-                        </form>
-                      </CardContent>
-                    </Card>
-                  </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="ghost" size="sm" onClick={() => setActiveTab("bids")}>
+                        View all
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 </div>
-              </div>
-            )}
-
-            {activeTab === "inquiries" && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-light">Inquiries</h2>
-
-                <Tabs defaultValue="brands">
-                  <TabsList>
-                    <TabsTrigger value="brands">Brand Inquiries</TabsTrigger>
-                    <TabsTrigger value="events">Event Organizers</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="brands" className="pt-6">
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle>Brand Sponsorship Inquiries</CardTitle>
-                        <CardDescription>
-                          Companies looking to sponsor events
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {filterInquiries(brandInquiries).map((inquiry, index) => (
-                            <Card key={index}>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between">
-                                  <div>
-                                    <CardTitle>{inquiry.name}</CardTitle>
-                                    <CardDescription>{inquiry.title} at {inquiry.company}</CardDescription>
-                                  </div>
-                                  <Badge>AED {inquiry.budget.toLocaleString()}</Badge>
-                                </div>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <span className="text-muted-foreground">Email:</span>{" "}
-                                    {inquiry.email}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Phone:</span>{" "}
-                                    {inquiry.phone}
-                                  </div>
-                                </div>
-                                <Separator className="my-4" />
-                                <div className="text-sm">{inquiry.message}</div>
-                              </CardContent>
-                              <CardFooter className="flex justify-between">
-                                <Button variant="ghost" size="sm">
-                                  Mark as Contacted
-                                </Button>
-                                <Button size="sm">Reply</Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="events" className="pt-6">
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle>Event Organizer Inquiries</CardTitle>
-                        <CardDescription>
-                          Organizations looking for sponsors for their events
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {filterInquiries(eventOrganizers).map((event, index) => (
-                            <Card key={index}>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between">
-                                  <div>
-                                    <CardTitle>{event.eventName}</CardTitle>
-                                    <CardDescription>
-                                      Organized by {event.company}
-                                    </CardDescription>
-                                  </div>
-                                  <Badge>{event.sponsorshipType}</Badge>
-                                </div>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-3 gap-4 text-sm">
-                                  <div>
-                                    <span className="text-muted-foreground">Contact:</span>{" "}
-                                    {event.name}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Email:</span>{" "}
-                                    {event.email}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Phone:</span>{" "}
-                                    {event.phone}
-                                  </div>
-                                </div>
-                                <Separator className="my-4" />
-                                <div className="text-sm">{event.description}</div>
-                              </CardContent>
-                              <CardFooter className="flex justify-between">
-                                <Button variant="ghost" size="sm">
-                                  Mark as Processed
-                                </Button>
-                                <Button size="sm">Contact</Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
               </div>
             )}
 
             {activeTab === "events" && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-light">Events Management</h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-light">Events</h2>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-sm py-1">
+                      {events.filter(e => e.status === 'pending').length} Pending
+                    </Badge>
+                    <Badge variant="default" className="text-sm py-1">
+                      {events.filter(e => e.status === 'approved').length} Approved
+                    </Badge>
+                    <Badge variant="destructive" className="text-sm py-1">
+                      {events.filter(e => e.status === 'rejected').length} Rejected
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {filterData(events).length > 0 ? (
+                    filterData(events).map((event) => (
+                      <Card key={event.id}>
+                        <CardHeader>
+                          <div className="flex justify-between">
+                            <div>
+                              <CardTitle className="flex items-center gap-2">
+                                {event.title}
+                                <Badge variant={event.status === 'pending' ? 'outline' : (event.status === 'approved' ? 'default' : 'destructive')}>
+                                  {event.status}
+                                </Badge>
+                              </CardTitle>
+                              <CardDescription>
+                                Organized by {event.organizer_name} • {new Date(event.date).toLocaleDateString()}
+                              </CardDescription>
+                            </div>
+                            {event.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
+                                  onClick={() => updateEventStatus(event.id, 'approved')}
+                                >
+                                  <Check className="mr-1 h-4 w-4" /> Approve
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                  onClick={() => updateEventStatus(event.id, 'rejected')}
+                                >
+                                  <X className="mr-1 h-4 w-4" /> Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium">Location</p>
+                              <p className="text-sm text-muted-foreground">{event.venue}, {event.location}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Expected Attendees</p>
+                              <p className="text-sm text-muted-foreground">{event.attendees}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Sponsorship Range</p>
+                              <p className="text-sm text-muted-foreground">AED {Number(event.min_bid).toLocaleString()} - AED {Number(event.max_bid).toLocaleString()}</p>
+                            </div>
+                          </div>
+                          
+                          <Separator className="my-4" />
+                          
+                          <div>
+                            <p className="text-sm font-medium mb-2">Description</p>
+                            <p className="text-sm text-muted-foreground">{event.description}</p>
+                          </div>
+                          
+                          <Separator className="my-4" />
+                          
+                          <div>
+                            <p className="text-sm font-medium mb-2">Contact Information</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Phone: {event.phone}</p>
+                                <Badge variant={event.phone_verified ? "default" : "outline"} className="text-xs">
+                                  {event.phone_verified ? "Verified" : "Unverified"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Info className="h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No events found matching your search.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "bids" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-light">Sponsorship Bids</h2>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-sm py-1">
+                      {bids.filter(b => b.status === 'pending').length} Pending
+                    </Badge>
+                    <Badge variant="default" className="text-sm py-1">
+                      {bids.filter(b => b.status === 'approved').length} Approved
+                    </Badge>
+                    <Badge variant="destructive" className="text-sm py-1">
+                      {bids.filter(b => b.status === 'rejected').length} Rejected
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {filterData(bids).length > 0 ? (
+                    filterData(bids).map((bid) => (
+                      <Card key={bid.id}>
+                        <CardHeader>
+                          <div className="flex justify-between">
+                            <div>
+                              <CardTitle className="flex items-center gap-2">
+                                {bid.brand_name}
+                                <Badge variant={bid.status === 'pending' ? 'outline' : (bid.status === 'approved' ? 'default' : 'destructive')}>
+                                  {bid.status}
+                                </Badge>
+                              </CardTitle>
+                              <CardDescription>
+                                For event: {bid.events?.title || 'Unknown Event'} • Bid Amount: AED {Number(bid.bid_amount).toLocaleString()}
+                              </CardDescription>
+                            </div>
+                            {bid.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
+                                  onClick={() => updateBidStatus(bid.id, 'approved')}
+                                >
+                                  <Check className="mr-1 h-4 w-4" /> Approve
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                  onClick={() => updateBidStatus(bid.id, 'rejected')}
+                                >
+                                  <X className="mr-1 h-4 w-4" /> Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium">Business Information</p>
+                              <p className="text-sm text-muted-foreground">Nature: {bid.business_nature}</p>
+                              <p className="text-sm text-muted-foreground">Location: {bid.company_address}, {bid.emirate}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Contact Information</p>
+                              <p className="text-sm text-muted-foreground">Name: {bid.contact_name}</p>
+                              <p className="text-sm text-muted-foreground">Email: {bid.email}</p>
+                              <p className="text-sm text-muted-foreground">Phone: {bid.phone}</p>
+                              <Badge variant={bid.phone_verified ? "default" : "outline"} className="text-xs mt-1">
+                                {bid.phone_verified ? "Phone Verified" : "Phone Unverified"}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          {bid.message && (
+                            <>
+                              <Separator className="my-4" />
+                              <div>
+                                <p className="text-sm font-medium mb-2">Additional Message</p>
+                                <p className="text-sm text-muted-foreground">{bid.message}</p>
+                              </div>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Info className="h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No bids found matching your search.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "settings" && (
+              <div className="space-y-6 max-w-2xl">
+                <h2 className="text-2xl font-light">Notification Settings</h2>
+                
                 <Card>
                   <CardHeader>
-                    <CardTitle>Events Layout Editor</CardTitle>
+                    <CardTitle>Email Notifications</CardTitle>
                     <CardDescription>
-                      Create and manage event layouts for sponsorship opportunities
+                      Add email addresses that will receive notifications when new events or bids are submitted.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Enter email address" 
+                        value={newEmail} 
+                        onChange={(e) => setNewEmail(e.target.value)}
+                      />
+                      <Button onClick={addEmail}>Add</Button>
+                    </div>
+                    
+                    <div className="space-y-2 mt-4">
+                      {notificationEmails.map((email) => (
+                        <div key={email} className="flex items-center justify-between bg-muted/40 p-2 rounded-md">
+                          <span className="text-sm">{email}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeEmail(email)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      
+                      {notificationEmails.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No notification emails added yet.</p>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={saveEmailSettings} 
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Admin Credentials</CardTitle>
+                    <CardDescription>
+                      Change your admin login credentials.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-muted p-4 rounded-md flex items-center justify-center h-80">
-                      <div className="text-center">
-                        <Info className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">
-                          The Event Layout Editor is being developed. Check back soon!
-                        </p>
-                        <Button variant="outline" className="mt-4">
-                          Launch Beta Editor
-                        </Button>
-                      </div>
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Current login: <span className="font-medium">test1</span> / <span className="font-medium">pass1</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      To change these credentials, please contact the system administrator.
+                    </p>
                   </CardContent>
                 </Card>
               </div>

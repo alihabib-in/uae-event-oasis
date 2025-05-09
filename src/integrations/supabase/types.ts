@@ -9,13 +9,176 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          notification_emails: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notification_emails?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notification_emails?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bids: {
+        Row: {
+          bid_amount: number
+          brand_name: string
+          business_nature: string
+          company_address: string
+          contact_name: string
+          created_at: string
+          email: string
+          emirate: string
+          event_id: string | null
+          id: string
+          message: string | null
+          phone: string
+          phone_verified: boolean | null
+          status: string | null
+          user_id: string | null
+          verification_code: string | null
+        }
+        Insert: {
+          bid_amount: number
+          brand_name: string
+          business_nature: string
+          company_address: string
+          contact_name: string
+          created_at?: string
+          email: string
+          emirate: string
+          event_id?: string | null
+          id?: string
+          message?: string | null
+          phone: string
+          phone_verified?: boolean | null
+          status?: string | null
+          user_id?: string | null
+          verification_code?: string | null
+        }
+        Update: {
+          bid_amount?: number
+          brand_name?: string
+          business_nature?: string
+          company_address?: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          emirate?: string
+          event_id?: string | null
+          id?: string
+          message?: string | null
+          phone?: string
+          phone_verified?: boolean | null
+          status?: string | null
+          user_id?: string | null
+          verification_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          attendees: number
+          category: string
+          created_at: string
+          date: string
+          description: string | null
+          end_date: string | null
+          id: string
+          image: string | null
+          location: string
+          max_bid: number
+          min_bid: number
+          organizer_logo: string | null
+          organizer_name: string
+          phone: string
+          phone_verified: boolean | null
+          sponsorship_details: string[] | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          user_id: string | null
+          venue: string
+          verification_code: string | null
+        }
+        Insert: {
+          attendees: number
+          category: string
+          created_at?: string
+          date: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image?: string | null
+          location: string
+          max_bid: number
+          min_bid: number
+          organizer_logo?: string | null
+          organizer_name: string
+          phone: string
+          phone_verified?: boolean | null
+          sponsorship_details?: string[] | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          user_id?: string | null
+          venue: string
+          verification_code?: string | null
+        }
+        Update: {
+          attendees?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image?: string | null
+          location?: string
+          max_bid?: number
+          min_bid?: number
+          organizer_logo?: string | null
+          organizer_name?: string
+          phone?: string
+          phone_verified?: boolean | null
+          sponsorship_details?: string[] | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          user_id?: string | null
+          venue?: string
+          verification_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_verification_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

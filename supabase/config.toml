@@ -1,1 +1,8 @@
+
 project_id = "uqtyatwvjmsgzywifhvc"
+
+[functions.verify-phone]
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true

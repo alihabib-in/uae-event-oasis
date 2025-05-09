@@ -103,7 +103,7 @@ const Hero = () => {
 const brands = [
   {
     name: "Etihad Airways",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Etihad_Airways_logo_2014.svg/512px-Etihad_Airways_logo_2014.svg.png"
+    logo: "https://static.zawya.com/view/acePublic/alias/contentid/043e22fa-a102-43ee-b282-cacd1672f634/0/eyairways_digital-png.webp?f=3%3A2&q=0.75&w=3840"
   },
   {
     name: "Emirates",
@@ -111,11 +111,11 @@ const brands = [
   },
   {
     name: "Dubai Holding",
-    logo: "https://www.dubaiholding.com/wp-content/themes/dubai-holding/assets/icons/dh-logo-white.svg"
+    logo: "https://w7.pngwing.com/pngs/905/732/png-transparent-dubai-holding-hd-logo.png"
   },
   {
     name: "Emaar",
-    logo: "https://www.emaar.com/assets/images/footer/emaar-logo-white.png"
+    logo: "https://i0.wp.com/achiever.ae/wp-content/uploads/2024/04/Emaar-Properties-Logo-e1713776008292.png?ssl=1"
   }
 ];
 

@@ -107,11 +107,11 @@ const brands = [
   },
   {
     name: "Emirates",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Emirates_logo.svg/512px-Emirates_logo.svg.png"
+    logo: "https://logolook.net/wp-content/uploads/2021/01/Emirates-Logo.png"
   },
   {
-    name: "Dubai Holding",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/AW_DH_PV_POS_RGB_EN_%28002%29.png"
+    name: "NBD,
+    logo: "https://www.reemmall.ae/wp-content/uploads/2023/10/EMIRATESNBD.AE_BIG-5d0a63c2.png"
   },
   {
     name: "Emaar",

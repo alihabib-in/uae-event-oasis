@@ -102,8 +102,8 @@ const Hero = () => {
 // Sample brand logos
 const brands = [
   {
-    name: "Etihad Airways",
-    logo: "https://static.zawya.com/view/acePublic/alias/contentid/043e22fa-a102-43ee-b282-cacd1672f634/0/eyairways_digital-png.webp?f=3%3A2&q=0.75&w=3840"
+    name: "Al Futtaim",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Majid_Al_Futtaim_logo.svg/2560px-Majid_Al_Futtaim_logo.svg.png"
   },
   {
     name: "Emirates",
@@ -111,7 +111,7 @@ const brands = [
   },
   {
     name: "Dubai Holding",
-    logo: "https://w7.pngwing.com/pngs/905/732/png-transparent-dubai-holding-hd-logo.png"
+    logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/AW_DH_PV_POS_RGB_EN_%28002%29.png"
   },
   {
     name: "Emaar",

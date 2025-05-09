@@ -12,6 +12,8 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import PostEventPage from "./pages/PostEventPage";
+import ForBrandsPage from "./pages/ForBrandsPage";
+import ForOrganizersPage from "./pages/ForOrganizersPage";
 import ChatbotProvider from "./components/chatbot/ChatbotProvider";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/post-event" element={<PostEventPage />} />
+              <Route path="/for-brands" element={<ForBrandsPage />} />
+              <Route path="/for-organizers" element={<ForOrganizersPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

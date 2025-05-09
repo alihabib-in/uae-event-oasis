@@ -107,11 +107,11 @@ const brands = [
   },
   {
     name: "Emirates",
-    logo: "https://logolook.net/wp-content/uploads/2021/01/Emirates-Logo.png"
+    logo: "https://klairport.info/ap-content/uploads/emirates-airlines.png"
   },
   {
-    name: "NBD",
-    logo: "https://www.reemmall.ae/wp-content/uploads/2023/10/EMIRATESNBD.AE_BIG-5d0a63c2.png"
+    name: "ADGM",
+    logo: "https://cebcmena.com/wp-content/uploads/2023/12/R10ba810ff55d09ce7bf9609bc51c744b_0538e58e12.png"
   },
   {
     name: "Emaar",

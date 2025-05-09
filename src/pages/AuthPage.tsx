@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { Provider } from "@supabase/supabase-js";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -104,11 +105,19 @@ const AuthPage = () => {
     }
   };
 
-  const handleSSOLogin = async (provider: 'google' | 'microsoft') => {
+  // Define the type for supported SSO providers
+  type SSOProvider = 'google' | { provider: 'microsoft', options?: { scopes?: string } };
+
+  const handleSSOLogin = async (provider: SSOProvider) => {
     try {
+      const providerConfig = typeof provider === 'string' 
+        ? { provider: provider as Provider }
+        : { provider: provider.provider as Provider, options: provider.options };
+
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
+        ...providerConfig,
         options: {
+          ...((typeof provider !== 'string' && provider.options) || {}),
           redirectTo: `${window.location.origin}/auth/callback`
         }
       });
@@ -117,7 +126,8 @@ const AuthPage = () => {
       
       // Redirect is handled by Supabase Auth
     } catch (error: any) {
-      toast.error(`${provider} login failed: ${error.message}`);
+      const providerName = typeof provider === 'string' ? provider : provider.provider;
+      toast.error(`${providerName} login failed: ${error.message}`);
     }
   };
 
@@ -171,7 +181,7 @@ const AuthPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('microsoft')}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin({ provider: 'microsoft' })}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -251,7 +261,7 @@ const AuthPage = () => {
                     </svg>
                     Google
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin('microsoft')}>
+                  <Button variant="outline" className="w-full" onClick={() => handleSSOLogin({ provider: 'microsoft' })}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"

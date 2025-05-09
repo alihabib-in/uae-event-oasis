@@ -47,6 +47,7 @@ const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
 
   const toggleChatbot = () => setOpen(prev => !prev);
   
+  // Modified addMessage function to automatically add timestamp
   const addMessage = ({ content, sender }: Omit<Message, 'id' | 'timestamp'>) => {
     const newMessage = {
       id: Date.now().toString(),

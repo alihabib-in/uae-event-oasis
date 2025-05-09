@@ -17,6 +17,7 @@ export const Chatbot = () => {
     addMessage({
       content: input.trim(),
       sender: 'user',
+      timestamp: Date.now(), // Adding timestamp here to fix the error
     });
     
     setInput('');

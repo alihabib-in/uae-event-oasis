@@ -17,7 +17,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
         >
           <source 
-            src="https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot" 
+            src="https://www.veed.io/view/554a1d44-c5de-4258-b457-289fe5eb3692?panel=share" 
             type="video/mp4" 
           />
           Your browser does not support the video tag.

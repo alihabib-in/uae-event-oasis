@@ -1,5 +1,7 @@
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+"use client";
+
+import React from "react";
 
 type Theme = "dark" | "light";
 
@@ -8,16 +10,19 @@ type ThemeContextType = {
   toggleTheme: () => void;
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Try to get theme from localStorage or default to dark
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    return savedTheme || "dark";
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    // Try to get theme from localStorage, but handle SSR case
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme") as Theme | null;
+      return savedTheme || "dark";
+    }
+    return "dark";
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Apply theme class to document element
     const root = window.document.documentElement;
     
@@ -33,19 +38,24 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = React.useCallback(() => {
     setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
-  };
+  }, []);
+
+  const value = React.useMemo(() => ({
+    theme,
+    toggleTheme
+  }), [theme, toggleTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
-};
+}
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext);
+  const context = React.useContext(ThemeContext);
   
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");

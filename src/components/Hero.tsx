@@ -17,7 +17,7 @@ const Hero = () => {
           className="w-full h-full object-cover"
         >
           <source 
-            src="https://www.veed.io/view/554a1d44-c5de-4258-b457-289fe5eb3692?panel=share" 
+            src="https://videos.pexels.com/video-files/4122166/4122166-sd_640_360_30fps.mp4" 
             type="video/mp4" 
           />
           Your browser does not support the video tag.

@@ -41,6 +41,7 @@ const Hero = () => {
                 <Link to="/post-event">Post Your Event</Link>
               </Button>
             </div>
+            {/* These buttons were previously commented out with HTML comments which caused the error */}
             <div className="flex flex-wrap gap-4 mt-8">
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10" asChild>
                 <Link to="/for-brands">For Brands</Link>
@@ -48,7 +49,7 @@ const Hero = () => {
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10" asChild>
                 <Link to="/for-organizers">For Organizers</Link>
               </Button>
-            </div> 
+            </div>
             <div className="mt-12 flex items-center">
               <div className="flex flex-wrap gap-4">
                 {brands.map((brand, index) => (

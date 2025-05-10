@@ -28,6 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         setIsAdmin(session?.user?.email === "admin@sponsorby.com" || 
                   Boolean(session?.user?.email?.includes("admin")));
+        
+        // Log session for debugging
+        if (session) {
+          console.log("Auth session updated:", session.user?.id);
+        }
       }
     );
     
@@ -38,6 +43,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(session?.user?.email === "admin@sponsorby.com" || 
                 Boolean(session?.user?.email?.includes("admin")));
       setIsLoading(false);
+      
+      // Log session for debugging
+      if (session) {
+        console.log("Initial auth session:", session.user?.id);
+      }
     });
 
     return () => {

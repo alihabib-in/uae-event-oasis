@@ -47,12 +47,19 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
       contactName: "",
       contactPosition: "",
       phone: "",
-      email: "",
+      email: user?.email || "",
       bidAmount: 0,
       message: "",
       website: "",
     },
   });
+
+  // Update form when user changes
+  useEffect(() => {
+    if (user?.email) {
+      form.setValue('email', user.email);
+    }
+  }, [user, form]);
 
   // Fetch event details
   useEffect(() => {
@@ -83,17 +90,26 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
     };
 
     if (isOpen && eventId) {
+      setIsLoading(true);
       fetchEventDetails();
     }
   }, [isOpen, eventId]);
 
   const onSubmit = async (values: BidFormValues) => {
-    await submitBid(values);
-    onOpenChange(false); // Close the dialog after submission
+    if (!user) {
+      onOpenChange(false);
+      navigate('/login');
+      toast.info("Please login to submit a bid");
+      return;
+    }
+    
+    // Make sure to pass the user ID
+    await submitBid({...values, user_id: user.id});
   };
 
   const handleVerified = () => {
     handlePhoneVerified(form.getValues("phone"), form.getValues());
+    onOpenChange(false); // Close the dialog after submission
   };
 
   // Redirect to login if not authenticated

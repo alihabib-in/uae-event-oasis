@@ -130,6 +130,8 @@ const PostEventPage = () => {
         return;
       }
       
+      console.log("Submitting event with user ID:", user.id);
+      
       // Insert the event into the database
       const { data, error } = await supabase
         .from('events')
@@ -147,36 +149,46 @@ const PostEventPage = () => {
             organizer_name: values.organizerName,
             phone: values.organizerPhone,
             user_id: user.id,
+            sponsorship_details: [values.sponsorshipNeeds],
           },
         ])
-        .select()
-        .single();
+        .select();
       
-      if (error) throw error;
-      
-      // Store the event ID for verification
-      setEventId(data.id);
-      
-      // Upload images if any
-      if (files.length > 0) {
-        for (const file of files) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${data.id}/${Date.now()}.${fileExt}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('events')
-            .upload(fileName, file);
-          
-          if (uploadError) {
-            console.error('Error uploading file:', uploadError);
-            toast.error(`Failed to upload ${file.name}`);
-          }
-        }
+      if (error) {
+        console.error("Event submission error:", error);
+        throw error;
       }
       
-      // Show verification modal
-      setIsVerificationModalOpen(true);
+      console.log("Event submitted successfully:", data);
+      
+      // Store the event ID for verification
+      if (data && data.length > 0) {
+        setEventId(data[0].id);
+        
+        // Upload images if any
+        if (files.length > 0) {
+          for (const file of files) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${data[0].id}/${Date.now()}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('events')
+              .upload(fileName, file);
+            
+            if (uploadError) {
+              console.error('Error uploading file:', uploadError);
+              toast.error(`Failed to upload ${file.name}`);
+            }
+          }
+        }
+        
+        // Show verification modal
+        setIsVerificationModalOpen(true);
+      } else {
+        throw new Error("Failed to get event ID after submission");
+      }
     } catch (error: any) {
+      console.error("Event submission error:", error);
       toast.error(error.message || "Failed to submit event");
       setIsSubmitting(false);
     }

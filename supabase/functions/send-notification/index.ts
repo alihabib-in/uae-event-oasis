@@ -7,6 +7,86 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Email templates organized by notification type
+const emailTemplates = {
+  event: (data: any) => ({
+    subject: `New Event Submission: ${data.eventName}`,
+    adminContent: `
+      New Event Submission Details:
+      
+      Event: ${data.eventName}
+      Organizer: ${data.organizerName}
+      Contact: ${data.organizerEmail}, ${data.organizerPhone}
+      
+      Please log in to the admin panel to review this submission.
+    `
+  }),
+  
+  bid: (data: any) => ({
+    subject: `New Sponsorship Bid: ${data.brandName}`,
+    adminContent: `
+      New Sponsorship Bid Details:
+      
+      Brand: ${data.brandName}
+      Event ID: ${data.eventId}
+      Contact: ${data.email}, ${data.phone}
+      Bid Amount: AED ${data.bidAmount}
+      
+      Please log in to the admin panel to review this submission.
+    `,
+    bidderSubject: "Your SponsorBy Bid Submission",
+    bidderContent: `
+      Dear ${data.contactName},
+      
+      Thank you for submitting your sponsorship bid for the event. Our team has received your submission and will review it promptly.
+      
+      Bid Details:
+      - Brand: ${data.brandName}
+      - Event ID: ${data.eventId}
+      - Bid Amount: AED ${data.bidAmount}
+      
+      We will be in touch with you shortly regarding next steps.
+      
+      Best regards,
+      The SponsorBy Team
+    `
+  })
+};
+
+// Function to send notifications
+async function sendNotification(type: string, data: any, notificationEmails: string[]) {
+  // Log the notification
+  console.log(`Processing ${type} notification`);
+  
+  if (type === "event") {
+    const template = emailTemplates.event(data);
+    console.log(`Sending event notification emails to ${notificationEmails.join(', ')}`);
+    console.log(`Subject: ${template.subject}`);
+    console.log(`Content: ${template.adminContent}`);
+    
+    // In a real implementation, you would call an email service API here
+  } 
+  else if (type === "bid") {
+    const template = emailTemplates.bid(data);
+    
+    // Send admin notification
+    console.log(`Sending bid notification emails to ${notificationEmails.join(', ')}`);
+    console.log(`Subject: ${template.subject}`);
+    console.log(`Content: ${template.adminContent}`);
+    
+    // Send confirmation email to bidder if email provided
+    if (data.email) {
+      console.log(`Sending confirmation email to bidder at: ${data.email}`);
+      console.log(`Subject: ${template.bidderSubject}`);
+      console.log(`Content: ${template.bidderContent}`);
+      
+      // In a real implementation, you would call an email service API here
+    }
+  }
+  
+  return true;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -33,51 +113,8 @@ serve(async (req) => {
     
     const notificationEmails = adminSettings.notification_emails;
     
-    // In a real implementation, you would send the email here using a service like SendGrid or similar
-    console.log(`Sending notification emails to ${notificationEmails.join(', ')}`);
-    
-    if (type === 'event') {
-      console.log(`New event submission: ${data.eventName} by ${data.organizerName}`);
-      // Send event notification email
-      // In a real implementation, this is where you'd make an API call to your email service
-      console.log(`Event notification content: 
-        Event: ${data.eventName}
-        Organizer: ${data.organizerName}
-        Contact: ${data.organizerEmail}, ${data.organizerPhone}
-      `);
-    } 
-    else if (type === 'bid') {
-      console.log(`New bid submission: ${data.brandName} for event ID ${data.eventId}`);
-      // Send bid notification email to admin
-      console.log(`Bid notification content: 
-        Brand: ${data.brandName}
-        Event ID: ${data.eventId}
-        Contact: ${data.email}, ${data.phone}
-        Bid Amount: ${data.bidAmount}
-      `);
-      
-      // Send confirmation email to bidder
-      if (data.email) {
-        // In a real implementation, this would use an email service API
-        console.log(`Sending confirmation email to bidder at: ${data.email}
-          Subject: Your SponsorBy Bid Submission
-          Content:
-          Dear ${data.contactName},
-          
-          Thank you for submitting your sponsorship bid for the event. Our team has received your submission and will review it promptly.
-          
-          Bid Details:
-          - Brand: ${data.brandName}
-          - Event: ${data.eventId}
-          - Bid Amount: AED ${data.bidAmount}
-          
-          We will be in touch with you shortly regarding next steps.
-          
-          Best regards,
-          The SponsorBy Team
-        `);
-      }
-    }
+    // Process the notification based on type
+    await sendNotification(type, data, notificationEmails);
     
     return new Response(
       JSON.stringify({ success: true, message: 'Notification sent' }),

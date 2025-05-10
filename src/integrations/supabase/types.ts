@@ -32,6 +32,7 @@ export type Database = {
       }
       bids: {
         Row: {
+          admin_response: string | null
           bid_amount: number
           brand_name: string
           business_nature: string
@@ -50,6 +51,7 @@ export type Database = {
           verification_code: string | null
         }
         Insert: {
+          admin_response?: string | null
           bid_amount: number
           brand_name: string
           business_nature: string
@@ -68,6 +70,7 @@ export type Database = {
           verification_code?: string | null
         }
         Update: {
+          admin_response?: string | null
           bid_amount?: number
           brand_name?: string
           business_nature?: string

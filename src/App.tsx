@@ -19,6 +19,7 @@ import ChatbotProvider from "./components/chatbot/ChatbotProvider";
 import { AuthProvider } from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AccountPage from "./pages/AccountPage";
+import SubmitBidPage from "./pages/SubmitBidPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/events/:eventId" element={<EventDetail />} />
+                <Route path="/events/:eventId/bid" element={<SubmitBidPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/account" element={

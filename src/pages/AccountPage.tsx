@@ -40,6 +40,7 @@ const AccountPage = () => {
       try {
         if (!user) return;
         
+        console.log("Fetching bids for user:", user.id);
         const { data, error } = await supabase
           .from("bids")
           .select(`
@@ -58,7 +59,10 @@ const AccountPage = () => {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Bid fetch error:", error);
+          throw error;
+        }
         
         console.log("Fetched bids:", data);
         setBids(data || []);
@@ -146,7 +150,7 @@ const AccountPage = () => {
                               <TableCell>AED {Number(bid.bid_amount).toLocaleString()}</TableCell>
                               <TableCell>
                                 <Badge className={getStatusBadgeStyle(bid.status)}>
-                                  {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
+                                  {bid.status ? bid.status.charAt(0).toUpperCase() + bid.status.slice(1) : "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="max-w-xs truncate">

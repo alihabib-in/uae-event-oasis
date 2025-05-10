@@ -184,21 +184,28 @@ const AdminPage = () => {
         };
 
         // Get the current authenticated user's session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        const session = data.session;
         
-        const { error: notificationError } = await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token || ''}`
-          },
-          body: JSON.stringify({
-            type: 'bid_status_update',
-            data: notificationData
-          })
-        }).then(res => res.json());
-
-        if (notificationError) {
+        try {
+          const response = await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token || ''}`
+            },
+            body: JSON.stringify({
+              type: 'bid_status_update',
+              data: notificationData
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.error) {
+            console.error('Error sending notification:', result.error);
+          }
+        } catch (notificationError) {
           console.error('Error sending notification:', notificationError);
         }
       }

@@ -56,7 +56,7 @@ export const useBidSubmission = (eventId: string | undefined) => {
     try {
       if (!user) {
         toast.error("You must be logged in to submit a bid");
-        navigate("/auth");
+        navigate("/login");
         return;
       }
       
@@ -86,6 +86,7 @@ export const useBidSubmission = (eventId: string | undefined) => {
             message: values.message || null,
             website: values.website || null,
             user_id: user.id,
+            status: 'pending',
           },
         ])
         .select();
@@ -123,22 +124,42 @@ export const useBidSubmission = (eventId: string | undefined) => {
       }
       
       console.log("Phone verified for bid ID:", bidId);
+
+      // Update the bid to mark phone as verified
+      await supabase
+        .from('bids')
+        .update({
+          phone_verified: true
+        })
+        .eq('id', bidId);
       
       // Send admin notification
-      await supabase.functions.invoke("send-notification", {
-        body: {
-          type: "bid",
-          data: {
-            bidId,
-            eventId,
-            brandName: formValues.brandName,
-            contactName: formValues.contactName,
-            email: formValues.email,
-            phone,
-            bidAmount: formValues.bidAmount,
-          }
-        },
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      try {
+        await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token || ''}`
+          },
+          body: JSON.stringify({
+            type: "bid",
+            data: {
+              bidId,
+              eventId,
+              brandName: formValues.brandName,
+              contactName: formValues.contactName,
+              email: formValues.email,
+              phone,
+              bidAmount: formValues.bidAmount,
+            }
+          }),
+        });
+      } catch (notificationError) {
+        console.error("Error sending notification:", notificationError);
+        // Continue execution even if notification fails
+      }
       
       toast.success("Bid submitted successfully! The event organizer will be in touch.");
       

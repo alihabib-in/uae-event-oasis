@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -55,9 +55,11 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
   });
 
   // Fetch event details
-  useState(() => {
+  useEffect(() => {
     const fetchEventDetails = async () => {
       try {
+        if (!isOpen) return;
+        
         console.log("Fetching event details for ID:", eventId);
         const { data, error } = await supabase
           .from("events")
@@ -83,7 +85,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
     if (isOpen && eventId) {
       fetchEventDetails();
     }
-  });
+  }, [isOpen, eventId]);
 
   const onSubmit = async (values: BidFormValues) => {
     await submitBid(values);

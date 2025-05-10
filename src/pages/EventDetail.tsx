@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -16,23 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import BidSubmissionDialog from "@/components/bid/BidSubmissionDialog";
-import { useAuth } from "@/components/AuthProvider";
-import { toast } from "sonner";
 
 const EventDetail = () => {
   const { eventId } = useParams();
-  const { user } = useAuth();
   const event = getEventById(eventId || "");
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
-
-  const handleBidButtonClick = () => {
-    if (!user) {
-      toast.info("Please login to submit a bid");
-    }
-    setIsBidDialogOpen(true);
-  };
 
   if (!event) {
     return (
@@ -292,7 +284,7 @@ const EventDetail = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={handleBidButtonClick}>
+                  <Button className="w-full" onClick={() => setIsBidDialogOpen(true)}>
                     Submit Sponsorship Bid
                   </Button>
                 </CardFooter>

@@ -22,7 +22,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { Eye, EyeOff } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -38,17 +37,12 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const resetPasswordSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-});
-
 const LoginPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "signup" | "reset">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
-  const [emailExists, setEmailExists] = useState<boolean | null>(null);
 
   // If user is already logged in, redirect to homepage
   if (user) {
@@ -73,29 +67,6 @@ const LoginPage = () => {
     },
   });
 
-  const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  const checkEmailExists = async (email: string) => {
-    try {
-      // Try a password reset to see if email exists
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login?tab=login`,
-      });
-      
-      // If no error, email exists
-      setEmailExists(true);
-      return true;
-    } catch (error) {
-      setEmailExists(false);
-      return false;
-    }
-  };
-
   const onLogin = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsLoading(true);
@@ -119,16 +90,6 @@ const LoginPage = () => {
   const onSignup = async (values: z.infer<typeof signupSchema>) => {
     try {
       setIsLoading(true);
-      
-      // Check if email already exists
-      const emailAlreadyExists = await checkEmailExists(values.email);
-      
-      if (emailAlreadyExists) {
-        toast.error("An account with this email already exists");
-        setActiveTab("login");
-        return;
-      }
-      
       const { error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -139,35 +100,8 @@ const LoginPage = () => {
       toast.success("Account created successfully! Please check your email to verify your account.");
       setActiveTab("login");
     } catch (error: any) {
-      if (error.message.includes("already registered")) {
-        toast.error("This email is already registered. Please use the forgot password link if needed.");
-        setActiveTab("login");
-      } else {
-        toast.error(error.message || "Failed to create account");
-        console.error("Signup error:", error);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const onResetPassword = async (values: z.infer<typeof resetPasswordSchema>) => {
-    try {
-      setIsLoading(true);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/login?tab=login`,
-      });
-
-      if (error) throw error;
-      
-      toast.success("If an account exists with this email, you will receive password reset instructions.");
-      setActiveTab("login");
-    } catch (error: any) {
-      // We don't want to reveal if email exists or not for security reasons
-      toast.success("If an account exists with this email, you will receive password reset instructions.");
-      console.error("Reset password error:", error);
-      setActiveTab("login");
+      toast.error(error.message || "Failed to create account");
+      console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +118,7 @@ const LoginPage = () => {
               <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="login" value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup" | "reset")}>
+              <Tabs defaultValue="login" value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
                 <TabsList className="grid grid-cols-2 w-full mb-6">
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -237,16 +171,6 @@ const LoginPage = () => {
                       <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading ? "Signing in..." : "Sign In"}
                       </Button>
-                      <div className="text-center">
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="text-sm text-muted-foreground"
-                          onClick={() => setActiveTab("reset")}
-                        >
-                          Forgot your password?
-                        </Button>
-                      </div>
                     </form>
                   </Form>
                 </TabsContent>
@@ -267,21 +191,6 @@ const LoginPage = () => {
                           </FormItem>
                         )}
                       />
-                      {emailExists === true && (
-                        <Alert variant="destructive" className="mt-2">
-                          <AlertDescription>
-                            This email is already registered. Please use the 
-                            <Button 
-                              variant="link" 
-                              className="px-1 py-0 h-auto" 
-                              onClick={() => setActiveTab("reset")}
-                            >
-                              forgot password
-                            </Button> 
-                            link if needed.
-                          </AlertDescription>
-                        </Alert>
-                      )}
                       <FormField
                         control={signupForm.control}
                         name="password"
@@ -325,43 +234,6 @@ const LoginPage = () => {
                       />
                       <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading ? "Creating account..." : "Sign Up"}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-
-                <TabsContent value="reset">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium">Reset Password</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Enter your email and we'll send you instructions to reset your password
-                    </p>
-                  </div>
-                  <Form {...resetPasswordForm}>
-                    <form onSubmit={resetPasswordForm.handleSubmit(onResetPassword)} className="space-y-4">
-                      <FormField
-                        control={resetPasswordForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="email@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Sending..." : "Send Reset Link"}
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        className="w-full" 
-                        onClick={() => setActiveTab("login")}
-                      >
-                        Back to login
                       </Button>
                     </form>
                   </Form>

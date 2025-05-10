@@ -18,17 +18,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
+import BidSubmissionDialog from "@/components/bid/BidSubmissionDialog";
 
 const EventDetail = () => {
   const { eventId } = useParams();
   const event = getEventById(eventId || "");
-  const [bidAmount, setBidAmount] = useState<string>("");
-  const [bidMessage, setBidMessage] = useState<string>("");
-  const { toast } = useToast();
+  const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
 
   if (!event) {
     return (
@@ -288,8 +284,8 @@ const EventDetail = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" asChild>
-                    <Link to={`/submit-bid/${eventId}`}>Submit Sponsorship Bid</Link>
+                  <Button className="w-full" onClick={() => setIsBidDialogOpen(true)}>
+                    Submit Sponsorship Bid
                   </Button>
                 </CardFooter>
               </Card>
@@ -328,6 +324,16 @@ const EventDetail = () => {
           </div>
         </div>
       </main>
+
+      {/* Bid Dialog */}
+      {eventId && (
+        <BidSubmissionDialog 
+          eventId={eventId}
+          isOpen={isBidDialogOpen}
+          onOpenChange={setIsBidDialogOpen}
+        />
+      )}
+
       <Footer />
     </div>
   );

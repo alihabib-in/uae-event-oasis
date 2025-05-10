@@ -13,12 +13,12 @@ import AuthPage from "./pages/AuthPage";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import PostEventPage from "./pages/PostEventPage";
-import SubmitBidPage from "./pages/SubmitBidPage";
 import ForBrandsPage from "./pages/ForBrandsPage";
 import ForOrganizersPage from "./pages/ForOrganizersPage";
 import ChatbotProvider from "./components/chatbot/ChatbotProvider";
 import { AuthProvider } from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AccountPage from "./pages/AccountPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +37,11 @@ const App = () => (
                 <Route path="/events/:eventId" element={<EventDetail />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/account" element={
+                  <ProtectedRoute>
+                    <AccountPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="/admin" element={
                   <ProtectedRoute requiredRole="admin">
                     <AdminPage />
@@ -47,15 +52,9 @@ const App = () => (
                     <PostEventPage />
                   </ProtectedRoute>
                 } />
-                <Route path="/events/:eventId/submit-bid" element={<Navigate to="/submit-bid/:eventId" replace />} />
-                <Route path="/submit-bid/:eventId" element={
-                  <ProtectedRoute>
-                    <SubmitBidPage />
-                  </ProtectedRoute>
-                } />
+                <Route path="*" element={<NotFound />} />
                 <Route path="/for-brands" element={<ForBrandsPage />} />
                 <Route path="/for-organizers" element={<ForOrganizersPage />} />
-                <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </ChatbotProvider>

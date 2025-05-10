@@ -1,12 +1,16 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Menu, X } from "lucide-react";
+import { Moon, Sun, Menu, X, User } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/components/AuthProvider";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const location = useLocation();
 
   return (
     <nav className="bg-background/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
@@ -90,8 +94,22 @@ const Navbar = () => {
                 <Moon className="h-5 w-5" />
               )}
             </Button>
-            <Button variant="ghost">Sign In</Button>
-            <Button>Sign Up</Button>
+            
+            {user ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/account">
+                    <User className="mr-2 h-4 w-4" />
+                    Account
+                  </Link>
+                </Button>
+                <Button onClick={() => signOut()}>Sign Out</Button>
+              </>
+            ) : (
+              <Button variant="ghost" asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
+            )}
           </div>
           <div className="flex items-center sm:hidden">
             <button
@@ -110,7 +128,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Keep existing mobile menu code */}
       {isMenuOpen && (
         <div className="sm:hidden bg-background/95 backdrop-blur-md">
           <div className="pt-2 pb-3 space-y-1">
@@ -159,8 +176,19 @@ const Navbar = () => {
                   </>
                 )}
               </Button>
-              <Button variant="ghost" className="w-full">Sign In</Button>
-              <Button className="w-full">Sign Up</Button>
+              
+              {user ? (
+                <>
+                  <Button variant="ghost" asChild className="w-full">
+                    <Link to="/account">Account</Link>
+                  </Button>
+                  <Button onClick={() => signOut()} className="w-full">Sign Out</Button>
+                </>
+              ) : (
+                <Button variant="ghost" asChild className="w-full">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

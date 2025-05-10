@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,180 +14,241 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Mail, Lock, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { useAuth } from "@/components/AuthProvider";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
-  username: z.string().min(1, { message: "Username is required" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const signupSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<z.infer<typeof loginSchema>>({
+  // If user is already logged in, redirect to homepage
+  if (user) {
+    navigate("/");
+    return null;
+  }
+
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  // Check for redirect params
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const error = params.get("error");
-    const errorDescription = params.get("error_description");
-    
-    if (error) {
-      toast.error(`Authentication error: ${errorDescription || error}`);
-    }
-  }, [location]);
+  const signupForm = useForm<z.infer<typeof signupSchema>>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const createAdminUserIfNeeded = async () => {
+  const onLogin = async (values: z.infer<typeof loginSchema>) => {
     try {
-      // First try to sign in with admin credentials
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: "admin@sponsorby.com",
-        password: "admin123",
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
       });
+
+      if (error) throw error;
       
-      // If sign in fails because user doesn't exist, create the admin user
-      if (signInError && signInError.message.includes("Invalid login credentials")) {
-        console.log("Admin user doesn't exist. Creating...");
-        
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: "admin@sponsorby.com",
-          password: "admin123",
-          options: {
-            data: {
-              full_name: 'Admin User',
-            }
-          }
-        });
-        
-        if (signUpError) {
-          console.error("Error creating admin user:", signUpError);
-          return false;
-        }
-        
-        toast.success("Admin account created successfully!");
-        return true;
-      } else if (signInData?.user) {
-        // User exists and sign in successful
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error("Error checking/creating admin user:", error);
-      return false;
+      toast.success("Login successful!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to login");
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    setIsLoading(true);
-    
+  const onSignup = async (values: z.infer<typeof signupSchema>) => {
     try {
-      // For the admin user, use hardcoded credentials
-      if (values.username === "admin" && values.password === "admin123") {
-        // Check if admin user exists, create if not
-        const adminUserReady = await createAdminUserIfNeeded();
-        
-        if (!adminUserReady) {
-          toast.error("Failed to set up admin user. Please try again.");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Now try to sign in with the admin credentials
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: "admin@sponsorby.com",
-          password: "admin123",
-        });
-        
-        if (error) throw error;
-        
-        toast.success("Admin login successful!");
-        navigate("/admin");
-      } else {
-        toast.error("Invalid admin credentials");
-      }
+      setIsLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (error) throw error;
+      
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      setActiveTab("login");
     } catch (error: any) {
-      toast.error(error.message || "Login failed");
+      toast.error(error.message || "Failed to create account");
+      console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access the admin panel
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <Input placeholder="Enter username" className="pl-10" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          className="pl-10"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="text-sm text-muted-foreground mt-2">
-                <p>For demo: Username: <strong>admin</strong>, Password: <strong>admin123</strong></p>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="bg-card/40 backdrop-blur-md border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl font-light">Welcome to <span className="text-gradient font-normal">sponsor</span><span className="text-primary font-medium">by</span></CardTitle>
+              <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="login" value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
+                <TabsList className="grid grid-cols-2 w-full mb-6">
+                  <TabsTrigger value="login">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="login">
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input 
+                                  type={showPassword ? "text" : "password"} 
+                                  placeholder="••••••••" 
+                                  {...field} 
+                                />
+                                <Button 
+                                  type="button"
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="absolute right-0 top-0"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? "Signing in..." : "Sign In"}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+                
+                <TabsContent value="signup">
+                  <Form {...signupForm}>
+                    <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-4">
+                      <FormField
+                        control={signupForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={signupForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input 
+                                  type={showPassword ? "text" : "password"} 
+                                  placeholder="••••••••" 
+                                  {...field} 
+                                />
+                                <Button 
+                                  type="button"
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="absolute right-0 top-0"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={signupForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? "Creating account..." : "Sign Up"}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-2">
+              <div className="text-sm text-muted-foreground text-center w-full">
+                By continuing, you agree to our Terms of Service and Privacy Policy.
               </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"} 
-                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 };

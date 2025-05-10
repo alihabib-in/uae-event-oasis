@@ -40,9 +40,17 @@ export const useBidSubmission = (eventId?: string) => {
     try {
       console.log("Submitting bid with values:", {...values, event_id: eventId, user_id: user?.id});
 
-      // Always make sure we have the user ID
+      // Format the bid data to match the database schema
       const bidData = {
-        ...values,
+        brand_name: values.brandName,
+        company_address: values.companyAddress,
+        emirate: values.emirate,
+        business_nature: values.businessNature,
+        contact_name: values.contactName,
+        phone: values.phone,
+        email: values.email,
+        bid_amount: values.bidAmount,
+        message: values.message,
         event_id: eventId,
         user_id: user?.id,  // Ensure user_id is set from auth context
       };

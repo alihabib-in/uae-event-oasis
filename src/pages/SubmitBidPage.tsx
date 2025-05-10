@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Building, Calendar, Mail, MapPin, Phone, User } from "lucide-react";
 
 // Update the schema to use z.coerce.number() for numeric fields
 const formSchema = z.object({
@@ -52,6 +54,9 @@ const formSchema = z.object({
   contactName: z.string().min(2, {
     message: "Contact person name must be at least 2 characters.",
   }),
+  contactPosition: z.string().min(2, {
+    message: "Position must be at least 2 characters.",
+  }),
   phone: z.string().min(9, {
     message: "Please enter a valid phone number.",
   }),
@@ -62,6 +67,9 @@ const formSchema = z.object({
     message: "Bid amount must be a positive number",
   }),
   message: z.string().optional(),
+  website: z.string().url({
+    message: "Please enter a valid website URL",
+  }).optional().or(z.literal('')),
 });
 
 const SubmitBidPage = () => {
@@ -82,27 +90,35 @@ const SubmitBidPage = () => {
       emirate: "",
       businessNature: "",
       contactName: "",
+      contactPosition: "",
       phone: "",
       email: "",
       bidAmount: 0,
       message: "",
+      website: "",
     },
   });
 
   // Fetch event details
-  useState(() => {
+  useEffect(() => {
     const fetchEventDetails = async () => {
       try {
+        console.log("Fetching event details for ID:", eventId);
         const { data, error } = await supabase
           .from("events")
           .select("*")
           .eq("id", eventId)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching event:", error);
+          throw error;
+        }
         
+        console.log("Event data fetched:", data);
         setEventDetails(data);
       } catch (error: any) {
+        console.error("Event fetch error:", error.message);
         toast.error("Error fetching event details");
         navigate("/events");
       } finally {
@@ -113,7 +129,7 @@ const SubmitBidPage = () => {
     if (eventId) {
       fetchEventDetails();
     }
-  });
+  }, [eventId, navigate]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
@@ -131,6 +147,8 @@ const SubmitBidPage = () => {
         return;
       }
       
+      console.log("Submitting bid with values:", values);
+      
       // Insert the bid into the database
       const { data, error } = await supabase
         .from('bids')
@@ -142,24 +160,35 @@ const SubmitBidPage = () => {
             emirate: values.emirate,
             business_nature: values.businessNature,
             contact_name: values.contactName,
+            contact_position: values.contactPosition,
             phone: values.phone,
             email: values.email,
             bid_amount: values.bidAmount,
             message: values.message || null,
+            website: values.website || null,
             user_id: user.id,
           },
         ])
-        .select()
-        .single();
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting bid:", error);
+        throw error;
+      }
+      
+      console.log("Bid submitted successfully:", data);
       
       // Store the bid ID for verification
-      setBidId(data.id);
-      
-      // Show verification modal
-      setIsVerificationModalOpen(true);
+      if (data && data.length > 0) {
+        setBidId(data[0].id);
+        
+        // Show verification modal
+        setIsVerificationModalOpen(true);
+      } else {
+        throw new Error("No data returned after inserting bid");
+      }
     } catch (error: any) {
+      console.error("Bid submission error:", error);
       toast.error(error.message || "Failed to submit bid");
       setIsSubmitting(false);
     }
@@ -169,6 +198,12 @@ const SubmitBidPage = () => {
     try {
       // Close the verification modal
       setIsVerificationModalOpen(false);
+      
+      if (!bidId) {
+        throw new Error("Missing bid ID");
+      }
+      
+      console.log("Phone verified for bid ID:", bidId);
       
       // Send admin notification
       await supabase.functions.invoke("send-notification", {
@@ -193,6 +228,7 @@ const SubmitBidPage = () => {
         navigate(`/events/${eventId}`);
       }, 1500);
     } catch (error: any) {
+      console.error("Error completing bid submission:", error);
       toast.error(error.message || "Failed to complete submission");
     } finally {
       setIsSubmitting(false);
@@ -271,7 +307,10 @@ const SubmitBidPage = () => {
                         <FormItem>
                           <FormLabel>Brand Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your brand name" {...field} />
+                            <div className="relative">
+                              <Building className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input placeholder="Your brand name" className="pl-10" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -292,12 +331,28 @@ const SubmitBidPage = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="website"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Website (optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://yourbrand.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="companyAddress"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
                           <FormLabel>Company Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="Full company address" {...field} />
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input placeholder="Full company address" className="pl-10" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -342,7 +397,23 @@ const SubmitBidPage = () => {
                         <FormItem>
                           <FormLabel>Contact Person Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Full name" {...field} />
+                            <div className="relative">
+                              <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input placeholder="Full name" className="pl-10" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="contactPosition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Position</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Marketing Manager" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -355,7 +426,10 @@ const SubmitBidPage = () => {
                         <FormItem>
                           <FormLabel>Email Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="email@example.com" {...field} />
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input placeholder="email@example.com" className="pl-10" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -368,7 +442,10 @@ const SubmitBidPage = () => {
                         <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
-                            <Input placeholder="+971 XX XXX XXXX" {...field} />
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                              <Input placeholder="+971 XX XXX XXXX" className="pl-10" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -381,7 +458,10 @@ const SubmitBidPage = () => {
                         <FormItem>
                           <FormLabel>Sponsorship Bid Amount (AED)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="Enter bid amount" {...field} />
+                            <div className="relative">
+                              <span className="absolute left-3 top-2.5 text-muted-foreground font-medium">AED</span>
+                              <Input type="number" className="pl-12" placeholder="Enter bid amount" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -396,10 +476,10 @@ const SubmitBidPage = () => {
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Additional Information (Optional)</FormLabel>
+                        <FormLabel>Message to Organizer</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Any specific requirements or questions you have about sponsoring this event"
+                            placeholder="Share details about your brand, sponsorship goals, and why you're interested in this event"
                             className="min-h-32"
                             {...field}
                           />
@@ -429,7 +509,7 @@ const SubmitBidPage = () => {
       </main>
 
       <Dialog open={isVerificationModalOpen} onOpenChange={setIsVerificationModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[550px] bg-card/95 backdrop-blur-sm border border-white/10">
           <DialogHeader>
             <DialogTitle>Verify Your Phone Number</DialogTitle>
             <DialogDescription>

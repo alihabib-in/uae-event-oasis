@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -50,41 +49,6 @@ const EventDetail = () => {
       </div>
     );
   }
-
-  const handleBidSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate bid amount
-    const amount = Number(bidAmount);
-    if (isNaN(amount) || amount < event.minBid || amount > event.maxBid) {
-      toast({
-        variant: "destructive",
-        title: "Invalid bid amount",
-        description: `Please enter a bid between AED ${event.minBid.toLocaleString()} and AED ${event.maxBid.toLocaleString()}.`,
-      });
-      return;
-    }
-
-    // Validate bid message
-    if (bidMessage.trim().length < 20) {
-      toast({
-        variant: "destructive",
-        title: "Message too short",
-        description: "Please provide a more detailed message about your sponsorship interest.",
-      });
-      return;
-    }
-
-    // Success message
-    toast({
-      title: "Bid submitted successfully!",
-      description: "The event organizer will review your bid and contact you soon.",
-    });
-
-    // Clear form
-    setBidAmount("");
-    setBidMessage("");
-  };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -324,57 +288,9 @@ const EventDetail = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full">Submit Sponsorship Bid</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[550px] bg-card/95 backdrop-blur-sm border border-white/10">
-                      <form onSubmit={handleBidSubmit}>
-                        <DialogHeader>
-                          <DialogTitle className="text-white">Submit Your Bid</DialogTitle>
-                          <DialogDescription className="text-gray-300">
-                            Enter your bid amount and message to the event organizer.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bidAmount" className="col-span-4 text-white">
-                              Bid Amount (AED)
-                              <span className="text-sm text-muted-foreground ml-2">
-                                Range: {event.minBid.toLocaleString()} - {event.maxBid.toLocaleString()}
-                              </span>
-                            </Label>
-                            <div className="col-span-4">
-                              <Input
-                                id="bidAmount"
-                                type="number"
-                                value={bidAmount}
-                                onChange={(e) => setBidAmount(e.target.value)}
-                                placeholder="Enter your bid amount"
-                                className="w-full bg-background/50 border-white/10"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bidMessage" className="col-span-4 text-white">
-                              Message to Organizer
-                            </Label>
-                            <Textarea
-                              id="bidMessage"
-                              value={bidMessage}
-                              onChange={(e) => setBidMessage(e.target.value)}
-                              placeholder="Tell the organizer why you're interested in sponsoring this event and how your brand would be a good fit"
-                              className="col-span-4 bg-background/50 border-white/10"
-                              rows={5}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button type="submit">Submit Bid</Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                  <Button className="w-full" asChild>
+                    <Link to={`/events/${eventId}/submit-bid`}>Submit Sponsorship Bid</Link>
+                  </Button>
                 </CardFooter>
               </Card>
             </div>

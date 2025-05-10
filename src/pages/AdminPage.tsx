@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,11 +183,14 @@ const AdminPage = () => {
           adminResponse: customResponse
         };
 
+        // Get the current authenticated user's session
+        const { data: { session } } = await supabase.auth.getSession();
+        
         const { error: notificationError } = await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+            'Authorization': `Bearer ${session?.access_token || ''}`
           },
           body: JSON.stringify({
             type: 'bid_status_update',

@@ -50,6 +50,29 @@ const emailTemplates = {
       Best regards,
       The SponsorBy Team
     `
+  }),
+  
+  bid_status_update: (data: any) => ({
+    bidderSubject: `Your SponsorBy Bid Has Been ${data.status === 'approved' ? 'Approved' : 'Rejected'}`,
+    bidderContent: `
+      Dear ${data.contactName},
+      
+      We are writing to inform you that your sponsorship bid for the event "${data.eventName}" has been ${data.status === 'approved' ? 'approved' : 'rejected'}.
+      
+      ${data.adminResponse ? `\nMessage from the SponsorBy Team:\n${data.adminResponse}\n` : ''}
+      
+      Bid Details:
+      - Brand: ${data.brandName}
+      - Event: ${data.eventName}
+      - Bid Amount: AED ${data.bidAmount}
+      
+      ${data.status === 'approved' 
+        ? 'Our team will contact you soon with next steps for finalizing the sponsorship arrangement.' 
+        : 'We appreciate your interest and hope you will consider other sponsorship opportunities in the future.'}
+      
+      Best regards,
+      The SponsorBy Team
+    `
   })
 };
 
@@ -83,6 +106,19 @@ async function sendNotification(type: string, data: any, notificationEmails: str
       // In a real implementation, you would call an email service API here
     }
   }
+  else if (type === "bid_status_update") {
+    const template = emailTemplates.bid_status_update(data);
+    
+    // Send status update email to bidder
+    if (data.email) {
+      console.log(`Sending bid status update email to bidder at: ${data.email}`);
+      console.log(`Subject: ${template.bidderSubject}`);
+      console.log(`Content: ${template.bidderContent}`);
+      console.log(`Status: ${data.status}, Custom response: ${data.adminResponse || 'None provided'}`);
+      
+      // In a real implementation, you would call an email service API here
+    }
+  }
   
   return true;
 }
@@ -108,6 +144,7 @@ serve(async (req) => {
       .single();
     
     if (settingsError) {
+      console.error('Error fetching admin settings:', settingsError);
       throw settingsError;
     }
     
@@ -122,6 +159,7 @@ serve(async (req) => {
     );
     
   } catch (error) {
+    console.error('Error in send-notification function:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }

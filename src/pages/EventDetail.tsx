@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -18,7 +19,6 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
@@ -289,7 +289,7 @@ const EventDetail = () => {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" asChild>
-                    <Link to={`/events/${eventId}/submit-bid`}>Submit Sponsorship Bid</Link>
+                    <Link to={`/submit-bid/${eventId}`}>Submit Sponsorship Bid</Link>
                   </Button>
                 </CardFooter>
               </Card>

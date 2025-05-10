@@ -47,6 +47,7 @@ const App = () => (
                     <PostEventPage />
                   </ProtectedRoute>
                 } />
+                <Route path="/events/:eventId/submit-bid" element={<Navigate to="/submit-bid/:eventId" replace />} />
                 <Route path="/submit-bid/:eventId" element={
                   <ProtectedRoute>
                     <SubmitBidPage />

@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Navigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const AdminPage = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -27,6 +29,10 @@ const AdminPage = () => {
   const [newEmail, setNewEmail] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [customResponse, setCustomResponse] = useState("");
+  const [selectedBidId, setSelectedBidId] = useState<string | null>(null);
+  const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
+  const [responseAction, setResponseAction] = useState<"approved" | "rejected" | null>(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -135,16 +141,68 @@ const AdminPage = () => {
     }
   };
 
-  const updateBidStatus = async (bidId: string, status: string) => {
+  const handleBidAction = (bidId: string, action: "approved" | "rejected") => {
+    setSelectedBidId(bidId);
+    setResponseAction(action);
+    setCustomResponse("");
+    setIsResponseDialogOpen(true);
+  };
+
+  const updateBidStatus = async () => {
+    if (!selectedBidId || !responseAction) return;
+    
     try {
+      const status = responseAction;
       const { error } = await supabase
         .from('bids')
-        .update({ status })
-        .eq('id', bidId);
+        .update({ 
+          status,
+          admin_response: customResponse 
+        })
+        .eq('id', selectedBidId);
       
       if (error) throw error;
+
+      // Get the bid data to send notification
+      const { data: bidData } = await supabase
+        .from('bids')
+        .select('*, events(*)')
+        .eq('id', selectedBidId)
+        .single();
+
+      if (bidData) {
+        // Send notification to bidder
+        const notificationData = {
+          brandName: bidData.brand_name,
+          eventId: bidData.event_id,
+          eventName: bidData.events?.title || 'Unknown Event',
+          email: bidData.email,
+          phone: bidData.phone,
+          bidAmount: bidData.bid_amount,
+          contactName: bidData.contact_name,
+          status: status,
+          adminResponse: customResponse
+        };
+
+        const { error: notificationError } = await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+          },
+          body: JSON.stringify({
+            type: 'bid_status_update',
+            data: notificationData
+          })
+        }).then(res => res.json());
+
+        if (notificationError) {
+          console.error('Error sending notification:', notificationError);
+        }
+      }
       
       toast.success(`Bid ${status === 'approved' ? 'approved' : 'rejected'}`);
+      setIsResponseDialogOpen(false);
       fetchData(); // Refresh data
     } catch (error: any) {
       console.error('Error updating bid status:', error);
@@ -514,7 +572,7 @@ const AdminPage = () => {
                                   size="sm" 
                                   variant="outline" 
                                   className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
-                                  onClick={() => updateBidStatus(bid.id, 'approved')}
+                                  onClick={() => handleBidAction(bid.id, 'approved')}
                                 >
                                   <Check className="mr-1 h-4 w-4" /> Approve
                                 </Button>
@@ -522,7 +580,7 @@ const AdminPage = () => {
                                   size="sm" 
                                   variant="outline" 
                                   className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-                                  onClick={() => updateBidStatus(bid.id, 'rejected')}
+                                  onClick={() => handleBidAction(bid.id, 'rejected')}
                                 >
                                   <X className="mr-1 h-4 w-4" /> Reject
                                 </Button>
@@ -554,6 +612,16 @@ const AdminPage = () => {
                               <div>
                                 <p className="text-sm font-medium mb-2">Additional Message</p>
                                 <p className="text-sm text-muted-foreground">{bid.message}</p>
+                              </div>
+                            </>
+                          )}
+
+                          {bid.admin_response && (
+                            <>
+                              <Separator className="my-4" />
+                              <div>
+                                <p className="text-sm font-medium mb-2">Admin Response</p>
+                                <p className="text-sm text-muted-foreground">{bid.admin_response}</p>
                               </div>
                             </>
                           )}
@@ -641,6 +709,44 @@ const AdminPage = () => {
           </main>
         </div>
       </div>
+
+      {/* Custom Response Dialog */}
+      <Dialog open={isResponseDialogOpen} onOpenChange={setIsResponseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {responseAction === 'approved' ? 'Approve' : 'Reject'} Sponsorship Bid
+            </DialogTitle>
+            <DialogDescription>
+              {responseAction === 'approved' 
+                ? 'Add a custom response to the bidder to confirm approval.' 
+                : 'Please provide a reason for rejecting this bid.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Textarea
+              placeholder="Enter your response to the bidder..."
+              value={customResponse}
+              onChange={(e) => setCustomResponse(e.target.value)}
+              rows={5}
+              className="resize-none"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsResponseDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={updateBidStatus}
+              variant={responseAction === 'approved' ? 'default' : 'destructive'}
+            >
+              {responseAction === 'approved' ? 'Approve' : 'Reject'} Bid
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

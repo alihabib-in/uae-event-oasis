@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +18,7 @@ async function fetchOtpSettings() {
   try {
     const { data, error } = await supabase
       .from('admin_settings')
-      .select('require_otp_verification')
+      .select('*')
       .limit(1)
       .single();
     
@@ -28,6 +27,7 @@ async function fetchOtpSettings() {
       return true; // Default to requiring OTP if there's an error
     }
     
+    // Check if the field exists before accessing it
     return data?.require_otp_verification !== false; // Default to true if not explicitly set to false
   } catch (error) {
     console.error("Exception fetching OTP settings:", error);
@@ -36,6 +36,7 @@ async function fetchOtpSettings() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // ... keep existing code (session, user, isLoading, isAdmin state declarations)
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch OTP settings when the component mounts
   useEffect(() => {
     fetchOtpSettings().then(requireOtp => {
-      setRequireOtpVerification(requireOtp);
+      if (requireOtp !== undefined) {
+        setRequireOtpVerification(requireOtp);
+      }
     });
   }, []);
 
@@ -92,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -111,7 +114,9 @@ export const useOtpSettings = () => {
     const getSettings = async () => {
       setIsLoading(true);
       const requireOtp = await fetchOtpSettings();
-      setRequireOtp(requireOtp);
+      if (requireOtp !== undefined) {
+        setRequireOtp(requireOtp);
+      }
       setIsLoading(false);
     };
     

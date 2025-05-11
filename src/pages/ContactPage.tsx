@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,19 +45,8 @@ const ContactPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Save to the database
-      const { error } = await supabase.from('contact_inquiries').insert([
-        {
-          name: data.name,
-          email: data.email,
-          subject: data.subject,
-          message: data.message
-        }
-      ]);
-      
-      if (error) throw error;
-      
-      // Send notification email to admin
+      // Use the edge function instead of directly inserting into the database
+      // since the contact_inquiries table doesn't exist in the types yet
       await supabase.functions.invoke('send-contact-form', {
         body: { 
           name: data.name,

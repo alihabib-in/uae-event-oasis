@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { BarChart, Tag, Users, Calendar, Edit, Trash2, Plus, Search, Info, Mail, Check, X } from "lucide-react";
+import { BarChart, Tag, Calendar, Edit, Trash2, Plus, Search, Info, Mail, Check, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +28,7 @@ const AdminPage = () => {
   const [adminSettings, setAdminSettings] = useState<any>(null);
   const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState("");
-  const [isUpdating, setIsUpdating] = useState(isUpdating);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [customResponse, setCustomResponse] = useState("");
   const [selectedBidId, setSelectedBidId] = useState<string | null>(null);
@@ -241,6 +241,7 @@ const AdminPage = () => {
     try {
       const { error } = await supabase
         .from('events')
+        // Only update the is_public field
         .update({ is_public: !currentVisibility })
         .eq('id', eventId);
       

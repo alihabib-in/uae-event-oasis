@@ -10,7 +10,7 @@ interface AdminSettingsProps {
   settings?: {
     id: string;
     notification_emails: string[];
-    require_otp_verification: boolean;
+    require_otp_verification?: boolean;
   } | null;
   onSettingsSaved?: () => void;
 }
@@ -23,7 +23,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
   useEffect(() => {
     if (initialSettings) {
       setSettings(initialSettings);
-      setRequireOtp(initialSettings.require_otp_verification);
+      setRequireOtp(initialSettings.require_otp_verification !== undefined ? initialSettings.require_otp_verification : true);
     }
   }, [initialSettings]);
 

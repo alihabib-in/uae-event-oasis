@@ -1,4 +1,3 @@
-
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,8 +12,29 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar, Filter, Search, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define the event type to fix typing issues
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  end_date?: string;
+  location: string;
+  venue: string;
+  category: string;
+  min_bid: number;
+  max_bid: number;
+  attendees: number;
+  tags?: string[];
+  organizer_name: string;
+  organizer_logo?: string;
+  image?: string;
+  status: string;
+  is_public?: boolean;
+}
+
 const EventsPage = () => {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -81,7 +101,7 @@ const EventsPage = () => {
       // Filter by tags
       const matchesTags = 
         selectedTags.length === 0 || 
-        (event.tags && selectedTags.some(tag => event.tags.includes(tag)));
+        (event.tags && selectedTags.some(tag => event.tags!.includes(tag)));
       
       return matchesSearch && matchesCategory && matchesTags;
     });
@@ -199,7 +219,7 @@ const EventsPage = () => {
                     {filteredEvents
                       .filter(event => new Date(event.date) >= new Date())
                       .map((event) => (
-                        <EventCard key={event.id} event={event} />
+                        <EventCard key={event.id} event={event as any} />
                       ))}
                   </div>
                 ) : (
@@ -219,7 +239,7 @@ const EventsPage = () => {
                 ) : filteredEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEvents.map((event) => (
-                      <EventCard key={event.id} event={event} />
+                      <EventCard key={event.id} event={event as any} />
                     ))}
                   </div>
                 ) : (

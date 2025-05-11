@@ -209,13 +209,21 @@ const AdminPage = () => {
             })
           });
           
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+          }
+          
           const result = await response.json();
           
           if (result.error) {
             console.error('Error sending notification:', result.error);
+            toast.error(`Email notification error: ${result.error}`);
+          } else {
+            toast.success("Confirmation email sent successfully");
           }
-        } catch (notificationError) {
+        } catch (notificationError: any) {
           console.error('Error sending notification:', notificationError);
+          toast.error(`Failed to send email notification: ${notificationError.message}`);
         }
       }
       

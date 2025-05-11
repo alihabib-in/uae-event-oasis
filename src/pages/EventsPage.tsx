@@ -1,262 +1,239 @@
 
-import { useState } from "react";
+// Modifying the EventsPage to only fetch and show approved and public events
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import EventCard from "../components/EventCard";
-import { events } from "../data/eventData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Calendar, Filter, Search, Tag } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const EventsPage = () => {
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  
+  const navigate = useNavigate();
 
-  const categories = Array.from(new Set(events.map((event) => event.category)));
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // Only fetch approved and public events
+        const { data, error } = await supabase
+          .from("events")
+          .select("*")
+          .eq("status", "approved")
+          .eq("is_public", true)
+          .order("date", { ascending: true });
 
-  const filteredEvents = events.filter((event) => {
-    // Filter by search query
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.toLowerCase());
+        if (error) throw error;
+        
+        setEvents(data || []);
+        
+        // Extract all unique tags and categories
+        const tags = new Set<string>();
+        const categories = new Set<string>();
+        
+        data?.forEach(event => {
+          if (event.tags && Array.isArray(event.tags)) {
+            event.tags.forEach((tag: string) => tags.add(tag));
+          }
+          if (event.category) {
+            categories.add(event.category);
+          }
+        });
+        
+        setAllTags(Array.from(tags));
+        setAllCategories(Array.from(categories));
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Filter by category
-    const matchesCategory = selectedCategory === "" || event.category === selectedCategory;
+    fetchEvents();
+  }, []);
 
-    // Filter by price range
-    const matchesPriceRange = 
-      event.minBid >= priceRange[0] && event.maxBid <= priceRange[1];
+  const filterEvents = () => {
+    return events.filter(event => {
+      // Filter by search query
+      const matchesSearch = 
+        !searchQuery || 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Filter by category
+      const matchesCategory = 
+        !selectedCategory || 
+        event.category === selectedCategory;
+      
+      // Filter by tags
+      const matchesTags = 
+        selectedTags.length === 0 || 
+        (event.tags && selectedTags.some(tag => event.tags.includes(tag)));
+      
+      return matchesSearch && matchesCategory && matchesTags;
+    });
+  };
 
-    return matchesSearch && matchesCategory && matchesPriceRange;
-  });
+  const handleTagToggle = (value: string) => {
+    setSelectedTags(prev => {
+      return prev.includes(value)
+        ? prev.filter(tag => tag !== value)
+        : [...prev, value];
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedTags([]);
+    setSelectedCategory("");
+  };
+
+  const filteredEvents = filterEvents();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-grow py-12 bg-background">
+      
+      <main className="flex-1 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-8 mb-8 border border-white/5">
-            <h1 className="text-3xl font-bold mb-4 font-grotesk tracking-tight text-white">Discover Sponsorship Opportunities</h1>
-            <p className="text-lg text-gray-300 max-w-3xl">
-              Browse through a curated selection of events across the UAE looking for brand sponsors.
-              Find the perfect match for your marketing objectives and audience.
-            </p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+              <h1 className="text-4xl font-light tracking-tight mb-2">Explore Events</h1>
+              <p className="text-muted-foreground">
+                Discover the most exciting events across the UAE
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <Button onClick={() => navigate("/post-event")} className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Post Your Event
+              </Button>
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Filters */}
-            <div className="lg:col-span-1">
-              <div className="bg-card/40 backdrop-blur-sm p-6 rounded-lg border border-white/10 sticky top-20">
-                <h2 className="text-xl font-semibold mb-4 text-white font-grotesk">Filters</h2>
-                
-                <div className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search events..."
-                      className="pl-10 bg-background/50 border-white/10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <Accordion type="single" collapsible defaultValue="category" className="text-white">
-                  <AccordionItem value="category">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Event Category
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-2 pt-2">
-                        <div className="flex items-center">
-                          <input
-                            id="all"
-                            type="radio"
-                            name="category"
-                            className="h-4 w-4 text-primary"
-                            checked={selectedCategory === ""}
-                            onChange={() => setSelectedCategory("")}
-                          />
-                          <label htmlFor="all" className="ml-2 text-sm text-gray-300">
-                            All Categories
-                          </label>
-                        </div>
-                        {categories.map((category) => (
-                          <div key={category} className="flex items-center">
-                            <input
-                              id={category}
-                              type="radio"
-                              name="category"
-                              className="h-4 w-4 text-primary"
-                              checked={selectedCategory === category}
-                              onChange={() => setSelectedCategory(category)}
-                            />
-                            <label htmlFor={category} className="ml-2 text-sm text-gray-300">
-                              {category}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="budget">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Budget Range
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4 pt-2">
-                        <div>
-                          <label className="text-sm mb-1 block text-gray-300">Min Budget (AED)</label>
-                          <Select onValueChange={(value) => setPriceRange([parseInt(value), priceRange[1]])}>
-                            <SelectTrigger className="bg-background/50 border-white/10">
-                              <SelectValue placeholder="Min Budget" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem value="0">Any</SelectItem>
-                                <SelectItem value="10000">10,000</SelectItem>
-                                <SelectItem value="25000">25,000</SelectItem>
-                                <SelectItem value="50000">50,000</SelectItem>
-                                <SelectItem value="100000">100,000</SelectItem>
-                                <SelectItem value="250000">250,000</SelectItem>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <label className="text-sm mb-1 block text-gray-300">Max Budget (AED)</label>
-                          <Select onValueChange={(value) => setPriceRange([priceRange[0], parseInt(value)])}>
-                            <SelectTrigger className="bg-background/50 border-white/10">
-                              <SelectValue placeholder="Max Budget" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem value="1000000">Any</SelectItem>
-                                <SelectItem value="50000">50,000</SelectItem>
-                                <SelectItem value="100000">100,000</SelectItem>
-                                <SelectItem value="200000">200,000</SelectItem>
-                                <SelectItem value="500000">500,000</SelectItem>
-                                <SelectItem value="1000000">1,000,000+</SelectItem>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="location">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Location
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-2 pt-2">
-                        {["Dubai", "Abu Dhabi", "Sharjah", "Ras Al Khaimah"].map((location) => (
-                          <div key={location} className="flex items-center">
-                            <input
-                              id={location}
-                              type="checkbox"
-                              className="h-4 w-4 text-primary rounded"
-                            />
-                            <label htmlFor={location} className="ml-2 text-sm text-gray-300">
-                              {location}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
-                <Button className="w-full mt-6">Apply Filters</Button>
-                <Button variant="outline" className="w-full mt-2 border-white/10" onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("");
-                  setPriceRange([0, 1000000]);
-                }}>
-                  Clear All
+          
+          <div className="bg-card/30 p-4 rounded-xl mb-8">
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search events..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={clearFilters}
+                >
+                  <Filter className="h-4 w-4" />
+                  Clear Filters
                 </Button>
               </div>
             </div>
-
-            {/* Event Listings */}
-            <div className="lg:col-span-3">
-              <div className="mb-6 flex justify-between items-center">
-                <p className="text-gray-300">
-                  Showing <span className="font-medium text-white">{filteredEvents.length}</span> events
-                </p>
-                <Select defaultValue="newest">
-                  <SelectTrigger className="w-[180px] bg-background/50 border-white/10">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="budget-high">Highest Budget</SelectItem>
-                    <SelectItem value="budget-low">Lowest Budget</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {filteredEvents.length === 0 ? (
-                <div className="bg-card/40 backdrop-blur-sm rounded-lg p-8 text-center border border-white/10">
-                  <h3 className="text-xl font-medium mb-2 text-white">No events found</h3>
-                  <p className="text-gray-300 mb-4">
-                    Try adjusting your filters to find more results.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedCategory("");
-                      setPriceRange([0, 1000000]);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                  {filteredEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      id={event.id}
-                      title={event.title}
-                      date={new Date(event.date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                      location={event.location}
-                      category={event.category}
-                      minBid={event.minBid}
-                      maxBid={event.maxBid}
-                      image={event.image}
-                    />
+            
+            <div>
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">Categories</p>
+                <ToggleGroup type="single" className="justify-start flex-wrap" value={selectedCategory} onValueChange={setSelectedCategory}>
+                  {allCategories.map(category => (
+                    <ToggleGroupItem key={category} value={category} className="text-xs">
+                      {category}
+                    </ToggleGroupItem>
                   ))}
+                </ToggleGroup>
+              </div>
+              
+              {allTags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allTags.map(tag => (
+                      <Badge 
+                        key={tag} 
+                        variant={selectedTags.includes(tag) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => handleTagToggle(tag)}
+                      >
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </div>
+          
+          <div>
+            <Tabs defaultValue="upcoming" className="w-full mb-8">
+              <TabsList>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                <TabsTrigger value="all">All Events</TabsTrigger>
+              </TabsList>
+              <TabsContent value="upcoming" className="pt-4">
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((_, idx) => (
+                      <div key={idx} className="bg-card/30 rounded-xl h-72 animate-pulse" />
+                    ))}
+                  </div>
+                ) : filteredEvents.filter(e => new Date(e.date) >= new Date()).length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredEvents
+                      .filter(event => new Date(event.date) >= new Date())
+                      .map((event) => (
+                        <EventCard key={event.id} event={event} />
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">No upcoming events found matching your criteria.</p>
+                    <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="all" className="pt-4">
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((_, idx) => (
+                      <div key={idx} className="bg-card/30 rounded-xl h-72 animate-pulse" />
+                    ))}
+                  </div>
+                ) : filteredEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredEvents.map((event) => (
+                      <EventCard key={event.id} event={event} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">No events found matching your criteria.</p>
+                    <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </main>
+      
       <Footer />
     </div>
   );

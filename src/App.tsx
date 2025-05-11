@@ -20,6 +20,8 @@ import { AuthProvider } from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AccountPage from "./pages/AccountPage";
 import SubmitBidPage from "./pages/SubmitBidPage";
+import ContactPage from "./pages/ContactPage";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,7 @@ const App = () => (
           <Sonner />
           <ChatbotProvider>
             <BrowserRouter>
+              <GoogleAnalytics />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/events" element={<EventsPage />} />
@@ -39,6 +42,7 @@ const App = () => (
                 <Route path="/events/:eventId/bid" element={<SubmitBidPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/contact" element={<ContactPage />} />
                 <Route path="/account" element={
                   <ProtectedRoute>
                     <AccountPage />

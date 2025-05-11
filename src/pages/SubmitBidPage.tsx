@@ -59,6 +59,8 @@ const SubmitBidPage = () => {
           .from("events")
           .select("*")
           .eq("id", eventId)
+          .eq("status", "approved") // Only allow bids for approved events
+          .eq("is_public", true) // Only allow bids for public events
           .single();
 
         if (error) {

@@ -16,6 +16,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { Navigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import AdminSettings from "@/components/AdminSettings";
+import EventEditor from "@/components/EventEditor";
 
 const AdminPage = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -26,12 +28,14 @@ const AdminPage = () => {
   const [adminSettings, setAdminSettings] = useState<any>(null);
   const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(isUpdating);
   const [isFetching, setIsFetching] = useState(true);
   const [customResponse, setCustomResponse] = useState("");
   const [selectedBidId, setSelectedBidId] = useState<string | null>(null);
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
   const [responseAction, setResponseAction] = useState<"approved" | "rejected" | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -140,6 +144,11 @@ const AdminPage = () => {
     }
   };
 
+  const handleEditEvent = (event: any) => {
+    setSelectedEvent(event);
+    setIsEventEditorOpen(true);
+  };
+
   const handleBidAction = (bidId: string, action: "approved" | "rejected") => {
     setSelectedBidId(bidId);
     setResponseAction(action);
@@ -228,6 +237,23 @@ const AdminPage = () => {
     );
   };
 
+  const toggleEventVisibility = async (eventId: string, currentVisibility: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ is_public: !currentVisibility })
+        .eq('id', eventId);
+      
+      if (error) throw error;
+      
+      toast.success(`Event visibility updated to ${!currentVisibility ? 'public' : 'private'}`);
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      console.error('Error updating event visibility:', error);
+      toast.error(`Error updating visibility: ${error.message}`);
+    }
+  };
+
   // If still loading auth state, show loading
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
@@ -279,7 +305,7 @@ const AdminPage = () => {
               onClick={() => setActiveTab("settings")}
             >
               <Mail className="mr-2 h-4 w-4" />
-              Notification Settings
+              Settings
             </Button>
           </div>
 
@@ -465,31 +491,56 @@ const AdminPage = () => {
                                 <Badge variant={event.status === 'pending' ? 'outline' : (event.status === 'approved' ? 'default' : 'destructive')}>
                                   {event.status}
                                 </Badge>
+                                {event.is_public !== undefined && (
+                                  <Badge variant={event.is_public ? 'default' : 'outline'} className="ml-2">
+                                    {event.is_public ? 'Public' : 'Private'}
+                                  </Badge>
+                                )}
                               </CardTitle>
                               <CardDescription>
                                 Organized by {event.organizer_name} • {new Date(event.date).toLocaleDateString()}
                               </CardDescription>
                             </div>
-                            {event.status === 'pending' && (
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
-                                  onClick={() => updateEventStatus(event.id, 'approved')}
-                                >
-                                  <Check className="mr-1 h-4 w-4" /> Approve
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-                                  onClick={() => updateEventStatus(event.id, 'rejected')}
-                                >
-                                  <X className="mr-1 h-4 w-4" /> Reject
-                                </Button>
-                              </div>
-                            )}
+                            <div className="flex gap-2">
+                              {event.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
+                                    onClick={() => updateEventStatus(event.id, 'approved')}
+                                  >
+                                    <Check className="mr-1 h-4 w-4" /> Approve
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                    onClick={() => updateEventStatus(event.id, 'rejected')}
+                                  >
+                                    <X className="mr-1 h-4 w-4" /> Reject
+                                  </Button>
+                                </>
+                              )}
+                              {event.status === 'approved' && (
+                                <div className="flex gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleEditEvent(event)}
+                                  >
+                                    <Edit className="mr-1 h-4 w-4" /> Edit
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => toggleEventVisibility(event.id, event.is_public)}
+                                  >
+                                    {event.is_public ? 'Make Private' : 'Make Public'}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -648,8 +699,13 @@ const AdminPage = () => {
             )}
 
             {activeTab === "settings" && (
-              <div className="space-y-6 max-w-2xl">
-                <h2 className="text-2xl font-light">Notification Settings</h2>
+              <div className="space-y-8 max-w-2xl">
+                <h2 className="text-2xl font-light">Settings</h2>
+                
+                <AdminSettings 
+                  settings={adminSettings}
+                  onSettingsSaved={fetchData}
+                />
                 
                 <Card>
                   <CardHeader>
@@ -696,23 +752,6 @@ const AdminPage = () => {
                     </Button>
                   </CardFooter>
                 </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Admin Credentials</CardTitle>
-                    <CardDescription>
-                      Change your admin login credentials.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Current login: <span className="font-medium">test1</span> / <span className="font-medium">pass1</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      To change these credentials, please contact the system administrator.
-                    </p>
-                  </CardContent>
-                </Card>
               </div>
             )}
           </main>
@@ -756,6 +795,14 @@ const AdminPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Event Editor Dialog */}
+      <EventEditor
+        isOpen={isEventEditorOpen}
+        onClose={() => setIsEventEditorOpen(false)}
+        event={selectedEvent}
+        onEventUpdated={fetchData}
+      />
     </div>
   );
 };

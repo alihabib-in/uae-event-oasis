@@ -14,11 +14,40 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Fetch admin settings from supabase
+async function fetchOtpSettings() {
+  try {
+    const { data, error } = await supabase
+      .from('admin_settings')
+      .select('require_otp_verification')
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching OTP settings:", error);
+      return true; // Default to requiring OTP if there's an error
+    }
+    
+    return data?.require_otp_verification !== false; // Default to true if not explicitly set to false
+  } catch (error) {
+    console.error("Exception fetching OTP settings:", error);
+    return true; // Default to requiring OTP
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [requireOtpVerification, setRequireOtpVerification] = useState(true);
+
+  // Fetch OTP settings when the component mounts
+  useEffect(() => {
+    fetchOtpSettings().then(requireOtp => {
+      setRequireOtpVerification(requireOtp);
+    });
+  }, []);
 
   useEffect(() => {
     // First set up the auth state listener
@@ -71,4 +100,23 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+};
+
+// Export the OTP settings functionality
+export const useOtpSettings = () => {
+  const [requireOtp, setRequireOtp] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const getSettings = async () => {
+      setIsLoading(true);
+      const requireOtp = await fetchOtpSettings();
+      setRequireOtp(requireOtp);
+      setIsLoading(false);
+    };
+    
+    getSettings();
+  }, []);
+
+  return { requireOtp, isLoading };
 };

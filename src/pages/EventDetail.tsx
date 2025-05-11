@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -38,7 +37,7 @@ interface Event {
   max_bid?: number; // For Supabase events
   attendees: number;
   organizerId?: string;
-  organizer_id?: string; // For Supabase events
+  organizer_id?: string; // For Supabase events - needs to be optional
   organizerName: string;
   organizer_name?: string; // For Supabase events
   organizerLogo?: string;
@@ -48,6 +47,7 @@ interface Event {
   sponsorship_details?: string[]; // For Supabase events
   status: string;
   featured?: boolean;
+  is_public?: boolean; // For Supabase events
   tags?: string[];
 }
 
@@ -82,7 +82,8 @@ const EventDetail = () => {
               minBid: data.min_bid,
               maxBid: data.max_bid,
               attendees: data.attendees || 1000,
-              organizerId: data.organizer_id,
+              // Fix: Make sure to check if organizer_id exists before accessing
+              organizerId: data.user_id || undefined, // Using user_id instead of non-existent organizer_id
               organizerName: data.organizer_name || "Event Organizer",
               organizerLogo: data.organizer_logo,
               image: data.image || "/placeholder.svg",
@@ -93,7 +94,8 @@ const EventDetail = () => {
                 "Speaking opportunity"
               ],
               status: data.status,
-              featured: data.featured,
+              // Fix: featured property doesn't exist in Supabase events, so default to false
+              featured: false,
               tags: data.tags || []
             };
             
@@ -163,9 +165,9 @@ const EventDetail = () => {
   };
 
   // Use the correct property names based on data source
-  const endDate = event.endDate || event.end_date;
-  const minBid = event.minBid || event.min_bid || 0;
-  const maxBid = event.maxBid || event.max_bid || 0;
+  const endDate = event?.endDate || event?.end_date;
+  const minBid = event?.minBid || event?.min_bid || 0;
+  const maxBid = event?.maxBid || event?.max_bid || 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -174,23 +176,23 @@ const EventDetail = () => {
         {/* Hero Section */}
         <div
           className="h-72 md:h-96 bg-cover bg-center relative"
-          style={{ backgroundImage: `url(${event.image})` }}
+          style={{ backgroundImage: `url(${event?.image})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-              <Badge className="mb-4">{event.category}</Badge>
+              <Badge className="mb-4">{event?.category}</Badge>
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 font-grotesk">
-                {event.title}
+                {event?.title}
               </h1>
               <div className="flex items-center text-white/90 space-x-4">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
-                  <span>{formatDate(event.date)}</span>
+                  <span>{event?.date && formatDate(event.date)}</span>
                   {endDate && <span> - {formatDate(endDate)}</span>}
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span>{event.venue}, {event.location}</span>
+                  <span>{event?.venue}, {event?.location}</span>
                 </div>
               </div>
             </div>
@@ -215,7 +217,7 @@ const EventDetail = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-gray-300 whitespace-pre-line">
-                        {event.description}
+                        {event?.description}
                       </p>
 
                       <div className="mt-8">
@@ -225,7 +227,7 @@ const EventDetail = () => {
                             <Users className="h-5 w-5 text-primary mr-3" />
                             <div>
                               <p className="text-sm text-gray-300">Expected Attendance</p>
-                              <p className="font-medium text-white">{event.attendees.toLocaleString()} attendees</p>
+                              <p className="font-medium text-white">{event?.attendees.toLocaleString()} attendees</p>
                             </div>
                           </div>
                           <div className="flex items-center p-4 bg-muted/30 rounded-lg">
@@ -234,7 +236,7 @@ const EventDetail = () => {
                               <p className="text-sm text-gray-300">Duration</p>
                               <p className="font-medium text-white">
                                 {endDate 
-                                  ? `${Math.ceil((new Date(endDate).getTime() - new Date(event.date).getTime()) / (1000 * 60 * 60 * 24))} days` 
+                                  ? `${Math.ceil((new Date(endDate).getTime() - new Date(event?.date).getTime()) / (1000 * 60 * 60 * 24))} days` 
                                   : "1 day"}
                               </p>
                             </div>
@@ -245,7 +247,7 @@ const EventDetail = () => {
                       <div className="mt-8">
                         <h3 className="font-semibold text-lg mb-2 text-white">Event Tags</h3>
                         <div className="flex flex-wrap gap-2">
-                          {event.tags?.map((tag) => (
+                          {event?.tags?.map((tag) => (
                             <Badge key={tag} variant="secondary">
                               {tag}
                             </Badge>
@@ -266,7 +268,7 @@ const EventDetail = () => {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2 text-gray-300">
-                        {(event.sponsorshipDetails || event.sponsorship_details || []).map((detail, index) => (
+                        {(event?.sponsorshipDetails || event?.sponsorship_details || []).map((detail, index) => (
                           <li key={index} className="flex items-start">
                             <span className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold mr-3 mt-0.5">
                               {index + 1}
@@ -280,7 +282,7 @@ const EventDetail = () => {
                         <h3 className="font-semibold text-lg mb-3 text-white">Audience Demographics</h3>
                         <div className="p-4 bg-muted/30 rounded-lg">
                           <p className="mb-4 text-gray-300">
-                            This is a high-profile event attracting key decision-makers, industry professionals, and enthusiasts in the {event.category.toLowerCase()} sector.
+                            This is a high-profile event attracting key decision-makers, industry professionals, and enthusiasts in the {event?.category.toLowerCase()} sector.
                           </p>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -297,7 +299,7 @@ const EventDetail = () => {
                             </div>
                             <div>
                               <p className="text-sm text-gray-400">Interest Areas</p>
-                              <p className="font-medium text-white">{event.category}, Innovation, UAE</p>
+                              <p className="font-medium text-white">{event?.category}, Innovation, UAE</p>
                             </div>
                           </div>
                         </div>
@@ -314,20 +316,20 @@ const EventDetail = () => {
                     <CardContent>
                       <div className="flex items-center mb-6">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={event.organizerLogo || event.organizer_logo} />
+                          <AvatarImage src={event?.organizerLogo || event?.organizer_logo} />
                           <AvatarFallback>
-                            {(event.organizerName || event.organizer_name || "O").charAt(0)}
+                            {(event?.organizerName || event?.organizer_name || "O").charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="ml-4">
-                          <p className="font-semibold text-white">{event.organizerName || event.organizer_name || "Event Organizer"}</p>
+                          <p className="font-semibold text-white">{event?.organizerName || event?.organizer_name || "Event Organizer"}</p>
                           <p className="text-sm text-gray-300">Event Organizer</p>
                         </div>
                       </div>
 
                       <p className="text-gray-300 mb-6">
-                        {event.organizerName || event.organizer_name || "This organization"} is a leading event management company in the UAE, 
-                        specializing in {event.category.toLowerCase()} events. With years of experience 
+                        {event?.organizerName || event?.organizer_name || "This organization"} is a leading event management company in the UAE, 
+                        specializing in {event?.category.toLowerCase()} events. With years of experience 
                         in the industry, they consistently deliver exceptional events that 
                         create memorable experiences and valuable connections.
                       </p>
@@ -336,8 +338,8 @@ const EventDetail = () => {
                         <h4 className="font-medium mb-2 text-white">Previous Events</h4>
                         <ul className="list-disc list-inside space-y-1 text-gray-300">
                           <li>UAE Innovation Forum 2023</li>
-                          <li>Dubai {event.category} Exhibition</li>
-                          <li>Middle East {event.category} Awards</li>
+                          <li>Dubai {event?.category} Exhibition</li>
+                          <li>Middle East {event?.category} Awards</li>
                         </ul>
                       </div>
                     </CardContent>
@@ -372,7 +374,7 @@ const EventDetail = () => {
                       <div>
                         <p className="text-sm text-gray-300">Event Date</p>
                         <p className="font-semibold text-white">
-                          {formatDate(event.date)}
+                          {formatDate(event?.date)}
                           {endDate && <span> - {formatDate(endDate)}</span>}
                         </p>
                       </div>
@@ -382,7 +384,7 @@ const EventDetail = () => {
                       <Users className="h-5 w-5 text-primary mr-2" />
                       <div>
                         <p className="text-sm text-gray-300">Expected Attendance</p>
-                        <p className="font-semibold text-white">{event.attendees.toLocaleString()} people</p>
+                        <p className="font-semibold text-white">{event?.attendees.toLocaleString()} people</p>
                       </div>
                     </div>
 
@@ -409,7 +411,7 @@ const EventDetail = () => {
             <h2 className="text-2xl font-bold mb-6 text-white font-grotesk">Similar Events</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {events
-                .filter((e) => e.category === event.category && e.id !== event.id)
+                .filter((e) => e.category === event?.category && e.id !== event.id)
                 .slice(0, 4)
                 .map((similarEvent) => (
                   <Link key={similarEvent.id} to={`/events/${similarEvent.id}`} className="block">

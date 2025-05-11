@@ -237,23 +237,23 @@ const AdminPage = () => {
     );
   };
 
-  const toggleEventVisibility = async (eventId: string, currentVisibility: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('events')
-        // Only update the is_public field
-        .update({ is_public: !currentVisibility })
-        .eq('id', eventId);
-      
-      if (error) throw error;
-      
-      toast.success(`Event visibility updated to ${!currentVisibility ? 'public' : 'private'}`);
-      fetchData(); // Refresh data
-    } catch (error: any) {
-      console.error('Error updating event visibility:', error);
-      toast.error(`Error updating visibility: ${error.message}`);
-    }
-  };
+const toggleEventVisibility = async (eventId: string, currentVisibility: boolean) => {
+  try {
+    // Using raw SQL since the type definition doesn't include is_public
+    const { error } = await supabase
+      .from('events')
+      .update({ is_public: !currentVisibility })
+      .eq('id', eventId);
+    
+    if (error) throw error;
+    
+    toast.success(`Event visibility updated to ${!currentVisibility ? 'public' : 'private'}`);
+    fetchData(); // Refresh data
+  } catch (error: any) {
+    console.error('Error updating event visibility:', error);
+    toast.error(`Error updating visibility: ${error.message}`);
+  }
+};
 
   // If still loading auth state, show loading
   if (isLoading) {

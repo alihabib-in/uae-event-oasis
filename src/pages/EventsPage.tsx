@@ -1,3 +1,4 @@
+
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +31,7 @@ interface Event {
   organizer_logo?: string;
   image?: string;
   status: string;
-  is_public?: boolean;
+  is_public: boolean;
 }
 
 const EventsPage = () => {
@@ -219,7 +220,7 @@ const EventsPage = () => {
                     {filteredEvents
                       .filter(event => new Date(event.date) >= new Date())
                       .map((event) => (
-                        <EventCard key={event.id} event={event as any} />
+                        <EventCard key={event.id} event={event} />
                       ))}
                   </div>
                 ) : (
@@ -239,7 +240,7 @@ const EventsPage = () => {
                 ) : filteredEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEvents.map((event) => (
-                      <EventCard key={event.id} event={event as any} />
+                      <EventCard key={event.id} event={event} />
                     ))}
                   </div>
                 ) : (

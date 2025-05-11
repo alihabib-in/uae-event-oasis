@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,11 @@ async function fetchOtpSettings() {
     }
     
     // Check if the field exists before accessing it
-    return data?.require_otp_verification !== false; // Default to true if not explicitly set to false
+    // Since the database schema doesn't match the TypeScript types,
+    // we need to check if the field exists as a dynamic property
+    return data && 'require_otp_verification' in data 
+      ? Boolean(data.require_otp_verification)
+      : true; // Default to requiring OTP
   } catch (error) {
     console.error("Exception fetching OTP settings:", error);
     return true; // Default to requiring OTP
@@ -36,7 +41,6 @@ async function fetchOtpSettings() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // ... keep existing code (session, user, isLoading, isAdmin state declarations)
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);

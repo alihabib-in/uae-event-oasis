@@ -1,27 +1,28 @@
 
-import { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
-import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
-import EventInfoCard from "@/components/bid/EventInfoCard";
 import BrandInfoForm from "@/components/bid/BrandInfoForm";
 import ContactInfoForm from "@/components/bid/ContactInfoForm";
-import VerificationDialog from "@/components/bid/VerificationDialog";
+import EventInfoCard from "@/components/bid/EventInfoCard";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
+import VerificationDialog from "@/components/bid/VerificationDialog";
 
 const SubmitBidPage = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [eventDetails, setEventDetails] = useState<any>(null);
+  const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [verifiedPhone, setVerifiedPhone] = useState("");
   
   const {
     formSchema,
@@ -37,124 +38,114 @@ const SubmitBidPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       brandName: "",
+      businessNature: "",
       companyAddress: "",
       emirate: "",
-      businessNature: "",
       contactName: "",
       contactPosition: "",
-      phone: "",
       email: "",
+      phone: "",
       bidAmount: 0,
       message: "",
       website: "",
     },
   });
 
-  // Fetch event details
   useEffect(() => {
-    const fetchEventDetails = async () => {
+    const fetchEvent = async () => {
+      if (!eventId) return;
+
       try {
-        console.log("Fetching event details for ID:", eventId);
         const { data, error } = await supabase
           .from("events")
           .select("*")
           .eq("id", eventId)
-          .eq("status", "approved") // Only allow bids for approved events
-          .eq("is_public", true) // Only allow bids for public events
           .single();
 
-        if (error) {
-          console.error("Error fetching event:", error);
-          throw error;
+        if (error) throw error;
+        if (!data) {
+          toast.error("Event not found");
+          navigate("/events");
+          return;
         }
-        
-        console.log("Event data fetched:", data);
-        setEventDetails(data);
+
+        setEvent(data);
       } catch (error: any) {
-        console.error("Event fetch error:", error.message);
-        toast.error("Error fetching event details");
+        toast.error(error.message || "Failed to load event");
         navigate("/events");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (eventId) {
-      fetchEventDetails();
-    }
+    fetchEvent();
   }, [eventId, navigate]);
 
   const onSubmit = async (values: BidFormValues) => {
     await submitBid(values);
+    
+    // If verification dialog wasn't opened, the submission was successful (skipped verification)
+    if (bidId && !isVerificationModalOpen) {
+      setTimeout(() => navigate(`/events/${eventId}`), 2000);
+    }
   };
-
+  
   const handleVerified = () => {
     handlePhoneVerified(form.getValues("phone"), form.getValues());
+    setTimeout(() => navigate(`/events/${eventId}`), 2000);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <p>Loading event details...</p>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!eventDetails) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <p>Event not found</p>
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-
-      <main className="flex-1 py-16">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-light tracking-tight mb-2">Submit Your Bid</h1>
-            <p className="text-muted-foreground">
-              Submit your sponsorship bid for <span className="font-medium">{eventDetails.title}</span>
-            </p>
-          </div>
-
-          <div className="space-y-8">
-            <EventInfoCard eventDetails={eventDetails} />
-
+      
+      <div className="container py-6 flex-1">
+        <Button
+          variant="ghost"
+          className="mb-6"
+          onClick={() => navigate(`/events/${eventId}`)}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" /> Back to Event
+        </Button>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Submit Sponsorship Bid</h1>
+              <p className="text-muted-foreground mt-2">
+                Complete this form to submit your bid for sponsoring this event
+              </p>
+            </div>
+            
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <BrandInfoForm control={form.control} />
                 <ContactInfoForm control={form.control} />
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate(`/events/${eventId}`)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Submitting..." : "Submit Bid"}
+                
+                <div className="flex justify-end">
+                  <Button type="submit" size="lg" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit Bid
                   </Button>
                 </div>
               </form>
             </Form>
           </div>
+          
+          <div className="lg:col-span-1">
+            {event && <EventInfoCard event={event} />}
+          </div>
         </div>
-      </main>
-
+      </div>
+      
       <VerificationDialog 
         isOpen={isVerificationModalOpen}
         onOpenChange={setIsVerificationModalOpen}
@@ -162,7 +153,7 @@ const SubmitBidPage = () => {
         bidId={bidId}
         onVerified={handleVerified}
       />
-
+      
       <Footer />
     </div>
   );

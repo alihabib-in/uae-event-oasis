@@ -1,304 +1,96 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'fkGrotesk';
-  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'fkGrotesk';
-  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'fkGrotesk';
-  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'fkGrotesk';
-  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'fkGrotesk';
-  src: url('https://cdn.jsdelivr.net/gh/floriankarsten/space-grotesk@1.1.0/dist/web/fonts/SpaceGrotesk-Bold.woff2') format('woff2');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-
 @layer base {
   :root {
-    /* Light mode */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    
+    --foreground: 222.2 84% 4.9%;
+
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    
+    --card-foreground: 222.2 84% 4.9%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    
-    --primary: 196 100% 45%;
-    --primary-foreground: 0 0% 98%;
-    
-    --secondary: 270 100% 60%;
-    --secondary-foreground: 0 0% 98%;
-    
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    
-    --accent: 12 87% 59%;
-    --accent-foreground: 0 0% 98%;
-    
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 196 100% 45%;
-    
-    --radius: 0.75rem;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 196 100% 55%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 270 100% 70%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 12 87% 59%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 196 100% 55%;
-
-    --radius: 0.75rem;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.5% 48%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border transition-colors duration-200;
+    @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: 'fkGrotesk', system-ui, sans-serif;
-  }
-  
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Ensure text visibility in both modes */
-  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
-    @apply text-gray-900;
-  }
-  
-  .light p, .light span, .light div {
-    @apply text-gray-800;
-  }
-  
-  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-    @apply text-white;
-  }
-  
-  .dark p, .dark span, .dark div {
-    @apply text-gray-300;
-  }
-
-  /* Make headings thinner */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-light tracking-wide;
-  }
-  
-  /* Bold for emphasis only */
-  .font-bold, .font-semibold, strong {
-    @apply font-medium;
-  }
-
-  /* Improved contrast for inputs */
-  input, textarea, select {
-    @apply dark:bg-gray-800 dark:text-white bg-white text-gray-900;
+    @apply bg-background text-foreground;
   }
 }
 
-.hero-gradient {
-  @apply dark:bg-gradient-to-br dark:from-blue-900/10 dark:to-purple-900/10 bg-gradient-to-br from-blue-100 to-purple-100;
+/* Font variations for logo */
+.font-family-transition {
+  transition: font-family 0.3s ease;
 }
 
-.section-background {
-  @apply dark:bg-gradient-to-br dark:from-blue-900/5 dark:to-purple-900/5 bg-gradient-to-br from-blue-50 to-purple-50;
+.font-family-transition:hover {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
-.card-hover {
-  transition: transform 0.3s ease, box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes font-weight-animation {
+  0% { font-weight: 400; }
+  50% { font-weight: 700; }
+  100% { font-weight: 400; }
 }
 
-.card-hover:hover {
-  transform: translateY(-4px);
-  @apply dark:shadow-[0_8px_30px_rgba(30,174,219,0.2)] shadow-[0_8px_30px_rgba(30,174,219,0.15)];
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-bounce {
-  animation: bounce 2s infinite;
-}
-
-/* Material Design elevation shadows */
-.dark .elevation-1 {
-  box-shadow: 0px 2px 1px -1px rgba(255,255,255,0.1), 0px 1px 1px 0px rgba(255,255,255,0.07), 0px 1px 3px 0px rgba(255,255,255,0.06);
-}
-
-.elevation-1 {
-  box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.1), 0px 1px 1px 0px rgba(0,0,0,0.07), 0px 1px 3px 0px rgba(0,0,0,0.06);
-}
-
-.dark .elevation-2 {
-  box-shadow: 0px 3px 3px -2px rgba(255,255,255,0.1), 0px 2px 2px 0px rgba(255,255,255,0.07), 0px 1px 5px 0px rgba(255,255,255,0.06);
-}
-
-.elevation-2 {
-  box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.1), 0px 2px 2px 0px rgba(0,0,0,0.07), 0px 1px 5px 0px rgba(0,0,0,0.06);
-}
-
-.dark .elevation-3 {
-  box-shadow: 0px 3px 5px -1px rgba(255,255,255,0.1), 0px 3px 4px 0px rgba(255,255,255,0.07), 0px 1px 8px 0px rgba(255,255,255,0.06);
-}
-
-.elevation-3 {
-  box-shadow: 0px 3px 5px -1px rgba(0,0,0,0.1), 0px 3px 4px 0px rgba(0,0,0,0.07), 0px 1px 8px 0px rgba(0,0,0,0.06);
-}
-
-.dark .elevation-4 {
-  box-shadow: 0px 2px 4px -1px rgba(255,255,255,0.1), 0px 4px 5px 0px rgba(255,255,255,0.07), 0px 1px 10px 0px rgba(255,255,255,0.06);
-}
-
-.elevation-4 {
-  box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.1), 0px 4px 5px 0px rgba(0,0,0,0.07), 0px 1px 10px 0px rgba(0,0,0,0.06);
-}
-
-.dark .elevation-6 {
-  box-shadow: 0px 3px 5px -1px rgba(255,255,255,0.1), 0px 6px 10px 0px rgba(255,255,255,0.07), 0px 1px 18px 0px rgba(255,255,255,0.06);
-}
-
-.elevation-6 {
-  box-shadow: 0px 3px 5px -1px rgba(0,0,0,0.1), 0px 6px 10px 0px rgba(0,0,0,0.07), 0px 1px 18px 0px rgba(0,0,0,0.06);
-}
-
-.text-balance {
-  text-wrap: balance;
-}
-
-.section-title {
-  @apply text-4xl md:text-5xl font-bold tracking-tight dark:text-white text-gray-900;
-}
-
-.section-subtitle {
-  @apply mt-4 text-xl dark:text-muted-foreground text-gray-600 max-w-3xl mx-auto;
-}
-
-@layer components {
-  .material-card {
-    @apply dark:bg-card/40 bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden dark:border dark:border-white/10 border border-black/5 transition-all duration-300;
-    @apply dark:shadow-[0px_3px_3px_-2px_rgba(255,255,255,0.1),0px_2px_2px_0px_rgba(255,255,255,0.07),0px_1px_5px_0px_rgba(255,255,255,0.06)] shadow-[0px_3px_3px_-2px_rgba(0,0,0,0.1),0px_2px_2px_0px_rgba(0,0,0,0.07),0px_1px_5px_0px_rgba(0,0,0,0.06)];
-  }
-  
-  .material-card:hover {
-    transform: translateY(-2px);
-    @apply dark:shadow-[0px_2px_4px_-1px_rgba(255,255,255,0.1),0px_4px_5px_0px_rgba(255,255,255,0.07),0px_1px_10px_0px_rgba(255,255,255,0.06)] shadow-[0px_2px_4px_-1px_rgba(0,0,0,0.1),0px_4px_5px_0px_rgba(0,0,0,0.07),0px_1px_10px_0px_rgba(0,0,0,0.06)];
-  }
-
-  .glass-card {
-    @apply backdrop-blur-xl dark:bg-white/5 bg-black/5 dark:border dark:border-white/10 border border-black/10;
-    @apply dark:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)];
-  }
-
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
-  }
-}
-
-/* Vector animation classes */
-.vector-pulse {
-  animation: vector-pulse 3s infinite;
-}
-
-.vector-float {
-  animation: vector-float 6s ease-in-out infinite;
-}
-
-.vector-spin {
-  animation: vector-spin 10s linear infinite;
-}
-
-@keyframes vector-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-}
-
-@keyframes vector-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes vector-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.logo-text-animate {
+  animation: font-weight-animation 3s infinite;
 }

@@ -40,21 +40,29 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={{
-                    id: event.id,
-                    title: event.title,
-                    date: event.date,
-                    location: event.location,
-                    category: event.category,
-                    min_bid: event.minBid,
-                    max_bid: event.maxBid,
-                    image: event.image
-                  }}
-                />
-              ))}
+              {featuredEvents.map((event) => {
+                // Make sure the event exists before rendering it
+                if (!event) {
+                  console.error("Invalid featured event:", event);
+                  return null;
+                }
+                
+                return (
+                  <EventCard
+                    key={event.id}
+                    event={{
+                      id: event.id,
+                      title: event.title,
+                      date: event.date,
+                      location: event.location,
+                      category: event.category,
+                      min_bid: event.minBid,
+                      max_bid: event.maxBid,
+                      image: event.image
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         </section>

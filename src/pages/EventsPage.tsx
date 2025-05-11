@@ -1,3 +1,4 @@
+
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -57,25 +58,32 @@ const EventsPage = () => {
 
         if (error) throw error;
         
-        setEvents(data || []);
-        
-        // Extract all unique tags and categories
-        const tags = new Set<string>();
-        const categories = new Set<string>();
-        
-        data?.forEach(event => {
-          if (event.tags && Array.isArray(event.tags)) {
-            event.tags.forEach((tag: string) => tags.add(tag));
-          }
-          if (event.category) {
-            categories.add(event.category);
-          }
-        });
-        
-        setAllTags(Array.from(tags));
-        setAllCategories(Array.from(categories));
+        // Validate the data is an array before setting it
+        if (Array.isArray(data)) {
+          setEvents(data);
+          
+          // Extract all unique tags and categories
+          const tags = new Set<string>();
+          const categories = new Set<string>();
+          
+          data.forEach(event => {
+            if (event.tags && Array.isArray(event.tags)) {
+              event.tags.forEach((tag: string) => tags.add(tag));
+            }
+            if (event.category) {
+              categories.add(event.category);
+            }
+          });
+          
+          setAllTags(Array.from(tags));
+          setAllCategories(Array.from(categories));
+        } else {
+          console.error("Expected data to be an array but got:", data);
+          setEvents([]);
+        }
       } catch (error) {
         console.error("Error fetching events:", error);
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -84,14 +92,22 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
+  // Add robust type safety checks to our filter function
   const filterEvents = () => {
+    if (!Array.isArray(events)) {
+      console.error("Events is not an array:", events);
+      return [];
+    }
+    
     return events.filter(event => {
+      if (!event) return false;
+      
       // Filter by search query
       const matchesSearch = 
         !searchQuery || 
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+        (event.title && event.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (event.location && event.location.toLowerCase().includes(searchQuery.toLowerCase()));
       
       // Filter by category
       const matchesCategory = 
@@ -101,7 +117,7 @@ const EventsPage = () => {
       // Filter by tags
       const matchesTags = 
         selectedTags.length === 0 || 
-        (event.tags && selectedTags.some(tag => event.tags!.includes(tag)));
+        (event.tags && Array.isArray(event.tags) && selectedTags.some(tag => event.tags!.includes(tag)));
       
       return matchesSearch && matchesCategory && matchesTags;
     });
@@ -122,6 +138,30 @@ const EventsPage = () => {
   };
 
   const filteredEvents = filterEvents();
+
+  const renderEventCard = (event: Event) => {
+    if (!event || !event.id) {
+      console.error("Invalid event object:", event);
+      return null;
+    }
+    
+    return (
+      <EventCard 
+        key={event.id} 
+        event={{
+          id: event.id,
+          title: event.title,
+          date: event.date,
+          location: event.location,
+          category: event.category,
+          min_bid: event.min_bid,
+          max_bid: event.max_bid,
+          image: event.image,
+          is_public: event.is_public
+        }} 
+      />
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -217,10 +257,8 @@ const EventsPage = () => {
                 ) : filteredEvents.filter(e => new Date(e.date) >= new Date()).length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEvents
-                      .filter(event => new Date(event.date) >= new Date())
-                      .map((event) => (
-                        <EventCard key={event.id} event={event} />
-                      ))}
+                      .filter(event => event && event.date && new Date(event.date) >= new Date())
+                      .map(event => renderEventCard(event))}
                   </div>
                 ) : (
                   <div className="text-center py-16">
@@ -238,9 +276,7 @@ const EventsPage = () => {
                   </div>
                 ) : filteredEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredEvents.map((event) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
+                    {filteredEvents.map(event => renderEventCard(event))}
                   </div>
                 ) : (
                   <div className="text-center py-16">

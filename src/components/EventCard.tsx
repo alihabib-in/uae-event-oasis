@@ -19,6 +19,12 @@ export interface EventCardProps {
 }
 
 const EventCard = ({ event }: EventCardProps) => {
+  // Add a guard clause to prevent destructuring undefined
+  if (!event) {
+    console.error("Event is undefined in EventCard");
+    return null;
+  }
+
   const {
     id,
     title,

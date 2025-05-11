@@ -1,4 +1,3 @@
-
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";

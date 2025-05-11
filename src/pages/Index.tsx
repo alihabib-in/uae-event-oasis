@@ -43,18 +43,16 @@ const Index = () => {
               {featuredEvents.map((event) => (
                 <EventCard
                   key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  date={new Date(event.date).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                  location={event.location}
-                  category={event.category}
-                  minBid={event.minBid}
-                  maxBid={event.maxBid}
-                  image={event.image}
+                  event={{
+                    id: event.id,
+                    title: event.title,
+                    date: event.date,
+                    location: event.location,
+                    category: event.category,
+                    min_bid: event.minBid,
+                    max_bid: event.maxBid,
+                    image: event.image
+                  }}
                 />
               ))}
             </div>

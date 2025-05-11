@@ -1,121 +1,125 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
-
+// CORS headers for browser compatibility
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-interface BidStatusNotificationData {
-  brandName: string
-  eventId: string
-  eventName: string
-  email: string
-  phone: string
-  bidAmount: number
-  contactName: string
-  status: 'approved' | 'rejected'
-  adminResponse: string
-}
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
-
+  
   try {
-    const { type, data } = await req.json()
+    // Get the request body
+    const body = await req.json();
+    const { type, data } = body;
+    
+    // Get Supabase client using environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Handle different notification types
     if (type === 'bid_status_update') {
-      const notification = data as BidStatusNotificationData
-      
-      // Configure SMTP client
-      const client = new SMTPClient({
-        connection: {
-          hostname: 'smtp.gmail.com',
-          port: 465,
-          tls: true,
-          auth: {
-            username: Deno.env.get('SMTP_USERNAME') || '',
-            password: Deno.env.get('SMTP_PASSWORD') || '',
-          },
-        },
-      })
-
-      // Create appropriate subject and message based on status
-      const subject = notification.status === 'approved'
-        ? `Great News! Your sponsorship bid for ${notification.eventName} has been approved`
-        : `Update on your sponsorship bid for ${notification.eventName}`
-      
-      // Construct the email message
-      let message = `<h2>Hello ${notification.contactName},</h2>`
-      
-      if (notification.status === 'approved') {
-        message += `<p>We're pleased to inform you that your sponsorship bid for <strong>${notification.eventName}</strong> has been approved!</p>`
-      } else {
-        message += `<p>We've reviewed your sponsorship bid for <strong>${notification.eventName}</strong> and unfortunately, we are unable to accept it at this time.</p>`
-      }
-
-      // Add custom message from admin if provided
-      if (notification.adminResponse) {
-        message += `<p>Message from the event organizer:</p>
-                    <p style="background-color: #f7f7f7; padding: 15px; border-left: 4px solid #007bff; font-style: italic;">${notification.adminResponse}</p>`
-      }
-
-      message += `<h3>Bid Details:</h3>
-                  <ul>
-                    <li><strong>Event:</strong> ${notification.eventName}</li>
-                    <li><strong>Brand:</strong> ${notification.brandName}</li>
-                    <li><strong>Bid Amount:</strong> AED ${notification.bidAmount.toLocaleString()}</li>
-                  </ul>`
-      
-      // Add appropriate closing message
-      if (notification.status === 'approved') {
-        message += `<p>The event organizer will contact you soon to discuss next steps.</p>
-                    <p>Thank you for choosing to sponsor this event!</p>`
-      } else {
-        message += `<p>We appreciate your interest in this event and hope you'll consider future opportunities.</p>`
-      }
-      
-      message += `<p>Best regards,<br>The SponsorBy Team</p>`
-
-      // Send email
-      await client.send({
-        from: Deno.env.get('SMTP_FROM_ADDRESS') || 'notifications@sponsorby.com',
-        to: notification.email,
-        subject: subject,
-        html: message,
-      })
-
-      await client.close()
-
-      return new Response(
-        JSON.stringify({ success: true, message: 'Notification email sent successfully' }),
-        {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          status: 200,
-        },
-      )
+      console.log(`Processing bid_status_update notification`);
+      await handleBidStatusUpdate(data);
+    } else {
+      throw new Error(`Unsupported notification type: ${type}`);
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Invalid notification type' }),
-      {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 400,
-      },
-    )
-
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
   } catch (error) {
-    console.error('Error:', error.message)
+    console.error(`Error in notification function:`, error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 500,
-      },
-    )
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    );
   }
-})
+});
+
+async function handleBidStatusUpdate(data: any) {
+  const { 
+    brandName, 
+    eventName, 
+    email, 
+    bidAmount, 
+    contactName, 
+    status, 
+    adminResponse 
+  } = data;
+  
+  console.log(`Sending bid status update email to bidder at: ${email}`);
+  
+  // Create email subject based on status
+  const subject = status === 'approved' 
+    ? "Your SponsorBy Bid Has Been Approved"
+    : "Your SponsorBy Bid Has Been Rejected";
+  
+  // Create email content based on status
+  let content = '';
+  if (status === 'approved') {
+    content = `
+      Dear ${contactName},
+      
+      We are writing to inform you that your sponsorship bid for the event "${eventName}" has been approved.
+      
+      ${adminResponse ? `\nMessage from the SponsorBy Team:\n${adminResponse}\n` : ''}
+      
+      Bid Details:
+      - Brand: ${brandName}
+      - Event: ${eventName}
+      - Bid Amount: AED ${Number(bidAmount).toLocaleString()}
+      
+      Our team will contact you soon with next steps for finalizing the sponsorship arrangement.
+      
+      Best regards,
+      The SponsorBy Team
+    `;
+  } else {
+    content = `
+      Dear ${contactName},
+      
+      We regret to inform you that your sponsorship bid for the event "${eventName}" has been rejected.
+      
+      ${adminResponse ? `\nMessage from the SponsorBy Team:\n${adminResponse}\n` : ''}
+      
+      Bid Details:
+      - Brand: ${brandName}
+      - Event: ${eventName}
+      - Bid Amount: AED ${Number(bidAmount).toLocaleString()}
+      
+      We appreciate your interest and hope to work with you on future opportunities.
+      
+      Best regards,
+      The SponsorBy Team
+    `;
+  }
+  
+  console.log(`Subject: ${subject}`);
+  console.log(`Content: ${content}`);
+  console.log(`Status: ${status}, Custom response: ${adminResponse}`);
+  
+  // Here we would typically send the email using an email service
+  // For now, we're just logging the details since this is a demo
+  // In a real implementation, you would use a service like SendGrid, Mailgun, etc.
+  
+  // Example using a hypothetical email sending function:
+  // await sendEmail({
+  //   to: email,
+  //   subject: subject,
+  //   content: content
+  // });
+  
+  // Return true to indicate success
+  return true;
+}

@@ -166,14 +166,15 @@ const EventEditor = ({ isOpen, onClose, event, onEventUpdated }: EventEditorProp
     }
     
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('sponsorship_packages')
         .insert({
           event_id: event.id,
           name: newPackage.name,
           description: newPackage.description,
           price: newPackage.price
-        });
+        })
+        .select();
       
       if (error) throw error;
       

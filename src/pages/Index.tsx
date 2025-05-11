@@ -58,7 +58,8 @@ const Index = () => {
                       category: event.category,
                       min_bid: event.minBid,
                       max_bid: event.maxBid,
-                      image: event.image
+                      image: event.image,
+                      is_public: true
                     }}
                   />
                 );

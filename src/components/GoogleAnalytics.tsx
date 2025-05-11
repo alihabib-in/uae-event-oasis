@@ -22,6 +22,29 @@ const GoogleAnalytics = () => {
     initGA();
   }, [location]);
 
+  // Add the analytics script to the head if it doesn't exist already
+  useEffect(() => {
+    if (!document.getElementById('ga-script')) {
+      // Create and append the Google Analytics script tag
+      const script = document.createElement('script');
+      script.id = 'ga-script';
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
+      script.async = true;
+      document.head.appendChild(script);
+      
+      // Initialize the dataLayer
+      window.dataLayer = window.dataLayer || [];
+      function gtag(...args: any[]) {
+        window.dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', GA_TRACKING_ID);
+      
+      // Make gtag available globally
+      window.gtag = gtag;
+    }
+  }, []);
+
   return null;
 };
 

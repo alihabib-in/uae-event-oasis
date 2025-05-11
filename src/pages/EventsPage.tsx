@@ -1,4 +1,3 @@
-
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +59,7 @@ const EventsPage = () => {
         
         // Validate the data is an array before setting it
         if (Array.isArray(data)) {
+          console.log("Fetched events:", data);
           setEvents(data);
           
           // Extract all unique tags and categories
@@ -92,7 +92,6 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
-  // Add robust type safety checks to our filter function
   const filterEvents = () => {
     if (!Array.isArray(events)) {
       console.error("Events is not an array:", events);
@@ -145,6 +144,7 @@ const EventsPage = () => {
       return null;
     }
     
+    // Make sure we pass the event object with the correct property structure
     return (
       <EventCard 
         key={event.id} 
@@ -156,7 +156,7 @@ const EventsPage = () => {
           category: event.category,
           min_bid: event.min_bid,
           max_bid: event.max_bid,
-          image: event.image,
+          image: event.image || "/placeholder.svg",
           is_public: event.is_public
         }} 
       />

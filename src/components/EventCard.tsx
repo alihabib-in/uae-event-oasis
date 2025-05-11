@@ -25,16 +25,23 @@ const EventCard = ({ event }: EventCardProps) => {
     return null;
   }
 
+  // Safe destructuring with defaults
   const {
     id,
-    title,
-    date,
-    location,
-    category,
-    min_bid,
-    max_bid,
-    image
+    title = "Untitled Event",
+    date = new Date().toISOString(),
+    location = "TBA",
+    category = "Event",
+    min_bid = 0,
+    max_bid = 0,
+    image = "/placeholder.svg"
   } = event;
+
+  // Make sure we have a valid ID before rendering the card
+  if (!id) {
+    console.error("Event ID is missing in EventCard");
+    return null;
+  }
 
   return (
     <Link to={`/events/${id}`}>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -17,14 +17,121 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import BidSubmissionDialog from "@/components/bid/BidSubmissionDialog";
+import { supabase } from "@/integrations/supabase/client";
+
+// Define the event interface
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  endDate?: string;
+  end_date?: string; // For Supabase events
+  location: string;
+  venue: string;
+  category: string;
+  minBid: number;
+  min_bid?: number; // For Supabase events
+  maxBid: number;
+  max_bid?: number; // For Supabase events
+  attendees: number;
+  organizerId?: string;
+  organizer_id?: string; // For Supabase events
+  organizerName: string;
+  organizer_name?: string; // For Supabase events
+  organizerLogo?: string;
+  organizer_logo?: string; // For Supabase events
+  image: string;
+  sponsorshipDetails: string[];
+  sponsorship_details?: string[]; // For Supabase events
+  status: string;
+  featured?: boolean;
+  tags?: string[];
+}
 
 const EventDetail = () => {
   const { eventId } = useParams();
-  const event = getEventById(eventId || "");
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      // Try to get the event from Supabase first
+      if (eventId) {
+        try {
+          const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .eq("id", eventId)
+            .single();
+
+          if (!error && data) {
+            // If found in Supabase, normalize data format
+            const supabaseEvent: Event = {
+              id: data.id,
+              title: data.title,
+              description: data.description || "",
+              date: data.date,
+              endDate: data.end_date,
+              location: data.location,
+              venue: data.venue || "To be announced",
+              category: data.category,
+              minBid: data.min_bid,
+              maxBid: data.max_bid,
+              attendees: data.attendees || 1000,
+              organizerId: data.organizer_id,
+              organizerName: data.organizer_name || "Event Organizer",
+              organizerLogo: data.organizer_logo,
+              image: data.image || "/placeholder.svg",
+              sponsorshipDetails: data.sponsorship_details || [
+                "Logo placement on event materials",
+                "Brand visibility during the event",
+                "Social media promotion",
+                "Speaking opportunity"
+              ],
+              status: data.status,
+              featured: data.featured,
+              tags: data.tags || []
+            };
+            
+            setEvent(supabaseEvent);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error fetching from Supabase:", error);
+        }
+      }
+
+      // If not found in Supabase or there was an error, try to get from static data
+      const staticEvent = getEventById(eventId || "");
+      if (staticEvent) {
+        setEvent(staticEvent);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchEvent();
+  }, [eventId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-grow py-16 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-8"></div>
+            <p className="text-gray-300">Loading event details...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -55,6 +162,11 @@ const EventDetail = () => {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
+  // Use the correct property names based on data source
+  const endDate = event.endDate || event.end_date;
+  const minBid = event.minBid || event.min_bid || 0;
+  const maxBid = event.maxBid || event.max_bid || 0;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -74,7 +186,7 @@ const EventDetail = () => {
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
                   <span>{formatDate(event.date)}</span>
-                  {event.endDate && <span> - {formatDate(event.endDate)}</span>}
+                  {endDate && <span> - {formatDate(endDate)}</span>}
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
@@ -121,8 +233,8 @@ const EventDetail = () => {
                             <div>
                               <p className="text-sm text-gray-300">Duration</p>
                               <p className="font-medium text-white">
-                                {event.endDate 
-                                  ? `${Math.ceil((new Date(event.endDate).getTime() - new Date(event.date).getTime()) / (1000 * 60 * 60 * 24))} days` 
+                                {endDate 
+                                  ? `${Math.ceil((new Date(endDate).getTime() - new Date(event.date).getTime()) / (1000 * 60 * 60 * 24))} days` 
                                   : "1 day"}
                               </p>
                             </div>
@@ -154,7 +266,7 @@ const EventDetail = () => {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2 text-gray-300">
-                        {event.sponsorshipDetails.map((detail, index) => (
+                        {(event.sponsorshipDetails || event.sponsorship_details || []).map((detail, index) => (
                           <li key={index} className="flex items-start">
                             <span className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold mr-3 mt-0.5">
                               {index + 1}
@@ -202,19 +314,19 @@ const EventDetail = () => {
                     <CardContent>
                       <div className="flex items-center mb-6">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={event.organizerLogo} />
+                          <AvatarImage src={event.organizerLogo || event.organizer_logo} />
                           <AvatarFallback>
-                            {event.organizerName.charAt(0)}
+                            {(event.organizerName || event.organizer_name || "O").charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="ml-4">
-                          <p className="font-semibold text-white">{event.organizerName}</p>
+                          <p className="font-semibold text-white">{event.organizerName || event.organizer_name || "Event Organizer"}</p>
                           <p className="text-sm text-gray-300">Event Organizer</p>
                         </div>
                       </div>
 
                       <p className="text-gray-300 mb-6">
-                        {event.organizerName} is a leading event management company in the UAE, 
+                        {event.organizerName || event.organizer_name || "This organization"} is a leading event management company in the UAE, 
                         specializing in {event.category.toLowerCase()} events. With years of experience 
                         in the industry, they consistently deliver exceptional events that 
                         create memorable experiences and valuable connections.
@@ -250,7 +362,7 @@ const EventDetail = () => {
                       <div>
                         <p className="text-sm text-gray-300">Sponsorship Range</p>
                         <p className="font-semibold text-white">
-                          AED {event.minBid.toLocaleString()} - {event.maxBid.toLocaleString()}
+                          AED {minBid.toLocaleString()} - {maxBid.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -261,7 +373,7 @@ const EventDetail = () => {
                         <p className="text-sm text-gray-300">Event Date</p>
                         <p className="font-semibold text-white">
                           {formatDate(event.date)}
-                          {event.endDate && <span> - {formatDate(event.endDate)}</span>}
+                          {endDate && <span> - {formatDate(endDate)}</span>}
                         </p>
                       </div>
                     </div>

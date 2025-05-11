@@ -14,6 +14,7 @@ export interface EventCardProps {
     min_bid: number;
     max_bid: number;
     image?: string;
+    is_public?: boolean;
   };
 }
 

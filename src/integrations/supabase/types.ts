@@ -14,18 +14,21 @@ export type Database = {
           created_at: string
           id: string
           notification_emails: string[]
+          require_otp_verification: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
           notification_emails?: string[]
+          require_otp_verification?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
           notification_emails?: string[]
+          require_otp_verification?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -108,6 +111,7 @@ export type Database = {
           end_date: string | null
           id: string
           image: string | null
+          is_public: boolean
           location: string
           max_bid: number
           min_bid: number
@@ -132,6 +136,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           image?: string | null
+          is_public?: boolean
           location: string
           max_bid: number
           min_bid: number
@@ -156,6 +161,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           image?: string | null
+          is_public?: boolean
           location?: string
           max_bid?: number
           min_bid?: number

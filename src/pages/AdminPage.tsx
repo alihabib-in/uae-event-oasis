@@ -239,10 +239,11 @@ const AdminPage = () => {
 
 const toggleEventVisibility = async (eventId: string, currentVisibility: boolean) => {
   try {
-    // Using raw SQL since the type definition doesn't include is_public
     const { error } = await supabase
       .from('events')
-      .update({ is_public: !currentVisibility })
+      .update({ 
+        is_public: !currentVisibility 
+      })
       .eq('id', eventId);
     
     if (error) throw error;

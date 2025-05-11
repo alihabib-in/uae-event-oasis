@@ -122,6 +122,16 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
       </Dialog>
     );
   }
+  
+  // Transform eventDetails to match EventInfoCard's expected format
+  const transformedEventData = {
+    date: eventDetails.date,
+    venue: eventDetails.venue || "TBA",
+    location: eventDetails.location,
+    attendees: eventDetails.attendees || 0,
+    min_bid: eventDetails.min_bid || 0,
+    max_bid: eventDetails.max_bid || 0
+  };
 
   return (
     <>
@@ -135,7 +145,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <EventInfoCard eventDetails={eventDetails} />
+            <EventInfoCard event={transformedEventData} />
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

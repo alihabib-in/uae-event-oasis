@@ -21,7 +21,8 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['fkGrotesk', 'system-ui', 'sans-serif'],
-				grotesk: ['fkGrotesk', 'system-ui', 'sans-serif']
+				grotesk: ['fkGrotesk', 'system-ui', 'sans-serif'],
+				heading: ['fkGrotesk', 'system-ui', 'sans-serif'] // Added the missing font-heading class
 			},
 			colors: {
 				border: 'hsl(var(--border))',

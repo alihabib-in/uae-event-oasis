@@ -3,25 +3,50 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label"; // Use Label instead of FormLabel when outside a Form context
+import { DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
+import { Package } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface PackagesTabProps {
-  eventId: string | undefined;
+  eventId?: string;
   onClose: () => void;
 }
 
+// Schema for package form validation
+const packageSchema = z.object({
+  name: z.string().min(1, "Package name is required"),
+  price: z.coerce.number().min(1, "Price must be at least 1"),
+  description: z.string().min(1, "Description is required"),
+});
+
+type PackageFormValues = z.infer<typeof packageSchema>;
+
 const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
   const [packages, setPackages] = useState<any[]>([]);
-  const [newPackage, setNewPackage] = useState({
-    name: "",
-    description: "",
-    price: 0
-  });
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize the form
+  const form = useForm<PackageFormValues>({
+    resolver: zodResolver(packageSchema),
+    defaultValues: {
+      name: "",
+      price: 0,
+      description: "",
+    },
+  });
 
   useEffect(() => {
     if (eventId) {
@@ -32,7 +57,6 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
   const loadPackages = async () => {
     if (!eventId) return;
     
-    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('sponsorship_packages')
@@ -45,18 +69,11 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
       setPackages(data || []);
     } catch (error: any) {
       console.error('Error loading sponsorship packages:', error);
-      toast.error(`Failed to load packages: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleAddPackage = async () => {
+  const onSubmit = async (values: PackageFormValues) => {
     if (!eventId) return;
-    if (!newPackage.name || !newPackage.description || newPackage.price <= 0) {
-      toast.error("Please fill all package fields with valid values");
-      return;
-    }
     
     setIsLoading(true);
     try {
@@ -64,9 +81,9 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
         .from('sponsorship_packages')
         .insert({
           event_id: eventId,
-          name: newPackage.name,
-          description: newPackage.description,
-          price: newPackage.price
+          name: values.name,
+          description: values.description,
+          price: values.price
         })
         .select();
       
@@ -74,11 +91,7 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
       
       toast.success("Package added successfully");
       loadPackages();
-      setNewPackage({
-        name: "",
-        description: "",
-        price: 0
-      });
+      form.reset();
     } catch (error: any) {
       console.error('Error adding package:', error);
       toast.error(`Error adding package: ${error.message}`);
@@ -88,7 +101,6 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
   };
 
   const handleDeletePackage = async (packageId: string) => {
-    setIsLoading(true);
     try {
       const { error } = await supabase
         .from('sponsorship_packages')
@@ -102,8 +114,6 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
     } catch (error: any) {
       console.error('Error deleting package:', error);
       toast.error(`Error deleting package: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -111,50 +121,73 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
     <div className="space-y-6">
       <div className="border rounded-lg p-4 space-y-4">
         <h3 className="text-lg font-medium">Add New Package</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <FormLabel htmlFor="packageName">Package Name</FormLabel>
-            <Input 
-              id="packageName"
-              value={newPackage.name}
-              onChange={e => setNewPackage({...newPackage, name: e.target.value})}
-              placeholder="e.g. Gold Sponsor"
-            />
-          </div>
-          <div>
-            <FormLabel htmlFor="packagePrice">Price (AED)</FormLabel>
-            <Input 
-              id="packagePrice"
-              type="number"
-              value={newPackage.price}
-              onChange={e => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
-              placeholder="e.g. 5000"
-            />
-          </div>
-          <div className="md:col-span-3">
-            <FormLabel htmlFor="packageDescription">Description</FormLabel>
-            <Textarea 
-              id="packageDescription"
-              value={newPackage.description}
-              onChange={e => setNewPackage({...newPackage, description: e.target.value})}
-              placeholder="Describe what's included in this package"
-              rows={3}
-            />
-          </div>
-        </div>
-        <Button
-          onClick={handleAddPackage}
-          className="w-full mt-4"
-          disabled={isLoading}
-        >
-          {isLoading ? "Adding..." : "Add Package"}
-        </Button>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Package Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Gold Sponsor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price (AED)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g. 5000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="md:col-span-3">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe what's included in this package" 
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            <Button 
+              type="submit"
+              className="w-full mt-4"
+              disabled={isLoading}
+            >
+              {isLoading ? "Adding..." : "Add Package"}
+            </Button>
+          </form>
+        </Form>
       </div>
       
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Existing Packages</h3>
-        {isLoading && <p className="text-center py-4">Loading packages...</p>}
-        {!isLoading && packages.length === 0 ? (
+        {packages.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">
             No sponsorship packages have been created for this event yet.
           </p>
@@ -182,7 +215,6 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
                   size="icon" 
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => handleDeletePackage(pkg.id)}
-                  disabled={isLoading}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                 </Button>
@@ -191,6 +223,12 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
           </div>
         )}
       </div>
+      
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onClose}>
+          Close
+        </Button>
+      </DialogFooter>
     </div>
   );
 };

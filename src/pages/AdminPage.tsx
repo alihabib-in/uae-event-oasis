@@ -1,818 +1,503 @@
+
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { BarChart, Tag, Calendar, Edit, Trash2, Plus, Search, Info, Mail, Check, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { Navigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import AdminSettings from "@/components/AdminSettings";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { useNavigate } from "react-router-dom";
 import EventEditor from "@/components/EventEditor";
+import { X, Check, Package } from "lucide-react";
 
 const AdminPage = () => {
-  const { user, isAdmin, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<any[]>([]);
   const [bids, setBids] = useState<any[]>([]);
-  const [adminSettings, setAdminSettings] = useState<any>(null);
-  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
-  const [newEmail, setNewEmail] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [customResponse, setCustomResponse] = useState("");
-  const [selectedBidId, setSelectedBidId] = useState<string | null>(null);
-  const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
-  const [responseAction, setResponseAction] = useState<"approved" | "rejected" | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [eventToEdit, setEventToEdit] = useState<any>(null);
+  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("events");
 
-  // Fetch data on component mount
+  // Dialog states for bid approval/rejection
+  const [bidActionDialogOpen, setBidActionDialogOpen] = useState(false);
+  const [selectedBid, setSelectedBid] = useState<any>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [adminResponse, setAdminResponse] = useState("");
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
+    checkAdminStatus();
     fetchData();
-  }, []);
+  }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data: settings } = await supabase
+        .from("admin_settings")
+        .select("notification_emails")
+        .single();
+
+      if (settings && settings.notification_emails) {
+        const isUserAdmin = settings.notification_emails.includes(user.email);
+        setIsAdmin(isUserAdmin);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchData = async () => {
-    setIsFetching(true);
+    if (!user) return;
+
     try {
       // Fetch events
       const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+        .from("events")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (eventsError) throw eventsError;
-      setEvents(eventsData || []);
-      
+
       // Fetch bids
       const { data: bidsData, error: bidsError } = await supabase
-        .from('bids')
-        .select('*, events(*)')
-        .order('created_at', { ascending: false });
-      
+        .from("bids")
+        .select("*, events(title)")
+        .order("created_at", { ascending: false });
+
       if (bidsError) throw bidsError;
+
+      setEvents(eventsData || []);
       setBids(bidsData || []);
-      
-      // Fetch admin settings
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('admin_settings')
-        .select('*')
-        .limit(1)
-        .single();
-      
-      if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
-      
-      if (settingsData) {
-        setAdminSettings(settingsData);
-        setNotificationEmails(settingsData.notification_emails || []);
-      }
-    } catch (error: any) {
-      console.error('Error fetching data:', error);
-      toast.error(`Error fetching data: ${error.message}`);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
-  const addEmail = () => {
-    if (!newEmail) return;
-    
-    if (!newEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-    
-    if (notificationEmails.includes(newEmail)) {
-      toast.error("Email already exists");
-      return;
-    }
-    
-    setNotificationEmails([...notificationEmails, newEmail]);
-    setNewEmail("");
-  };
-
-  const removeEmail = (email: string) => {
-    setNotificationEmails(notificationEmails.filter(e => e !== email));
-  };
-
-  const saveEmailSettings = async () => {
-    setIsUpdating(true);
-    try {
-      const { data, error } = await supabase
-        .from('admin_settings')
-        .update({
-          notification_emails: notificationEmails,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', adminSettings.id);
-      
-      if (error) throw error;
-      
-      toast.success("Notification emails updated successfully");
-    } catch (error: any) {
-      console.error('Error updating settings:', error);
-      toast.error(`Error updating settings: ${error.message}`);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const updateEventStatus = async (eventId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('events')
-        .update({ status })
-        .eq('id', eventId);
-      
-      if (error) throw error;
-      
-      toast.success(`Event ${status === 'approved' ? 'approved' : 'rejected'}`);
-      fetchData(); // Refresh data
-    } catch (error: any) {
-      console.error('Error updating event status:', error);
-      toast.error(`Error updating event: ${error.message}`);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load admin data");
     }
   };
 
   const handleEditEvent = (event: any) => {
-    setSelectedEvent(event);
-    setIsEventEditorOpen(true);
+    setEventToEdit(event);
+    setIsEditEventOpen(true);
   };
 
-  const handleBidAction = (bidId: string, action: "approved" | "rejected") => {
-    setSelectedBidId(bidId);
-    setResponseAction(action);
-    setCustomResponse("");
-    setIsResponseDialogOpen(true);
+  const handleEventUpdated = () => {
+    fetchData();
   };
 
-  const updateBidStatus = async () => {
-    if (!selectedBidId || !responseAction) return;
-    
+  const handleViewPackages = async (eventId: string) => {
     try {
-      const status = responseAction;
-      const { error } = await supabase
-        .from('bids')
-        .update({ 
-          status,
-          admin_response: customResponse 
-        })
-        .eq('id', selectedBidId);
-      
+      const { data, error } = await supabase
+        .from("sponsorship_packages")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("price", { ascending: true });
+
       if (error) throw error;
 
-      // Get the bid data to send notification
-      const { data: bidData } = await supabase
-        .from('bids')
-        .select('*, events(*)')
-        .eq('id', selectedBidId)
-        .single();
-
-      if (bidData) {
-        // Send notification to bidder
-        const notificationData = {
-          brandName: bidData.brand_name,
-          eventId: bidData.event_id,
-          eventName: bidData.events?.title || 'Unknown Event',
-          email: bidData.email,
-          phone: bidData.phone,
-          bidAmount: bidData.bid_amount,
-          contactName: bidData.contact_name,
-          status: status,
-          adminResponse: customResponse
-        };
-
-        // Get the current authenticated user's session
-        const { data } = await supabase.auth.getSession();
-        const session = data.session;
-        
-        try {
-          const response = await fetch('https://uqtyatwvjmsgzywifhvc.supabase.co/functions/v1/send-notification', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session?.access_token || ''}`
-            },
-            body: JSON.stringify({
-              type: 'bid_status_update',
-              data: notificationData
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}`);
-          }
-          
-          const result = await response.json();
-          
-          if (result.error) {
-            console.error('Error sending notification:', result.error);
-            toast.error(`Email notification error: ${result.error}`);
-          } else {
-            toast.success("Confirmation email sent successfully");
-          }
-        } catch (notificationError: any) {
-          console.error('Error sending notification:', notificationError);
-          toast.error(`Failed to send email notification: ${notificationError.message}`);
-        }
+      if (data && data.length > 0) {
+        // Show packages in a dialog
+        setSelectedBid({
+          eventId,
+          packages: data,
+          eventTitle: events.find((e) => e.id === eventId)?.title || "Event"
+        });
+        setActionType("view_packages");
+        setBidActionDialogOpen(true);
+      } else {
+        toast.info("No sponsorship packages found for this event");
       }
-      
-      toast.success(`Bid ${status === 'approved' ? 'approved' : 'rejected'}`);
-      setIsResponseDialogOpen(false);
-      fetchData(); // Refresh data
-    } catch (error: any) {
-      console.error('Error updating bid status:', error);
-      toast.error(`Error updating bid: ${error.message}`);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      toast.error("Failed to load sponsorship packages");
     }
   };
 
-  const filterData = (items: any[]) => {
-    if (!searchQuery) return items;
-    return items.filter(item => 
-      Object.values(item).some(value => 
-        typeof value === 'string' && value.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
+  const handleBidAction = (bid: any, action: "approve" | "reject") => {
+    setSelectedBid(bid);
+    setActionType(action);
+    setAdminResponse("");
+    setBidActionDialogOpen(true);
   };
 
-const toggleEventVisibility = async (eventId: string, currentVisibility: boolean) => {
-  try {
-    const { error } = await supabase
-      .from('events')
-      .update({ 
-        is_public: !currentVisibility 
-      })
-      .eq('id', eventId);
-    
-    if (error) throw error;
-    
-    toast.success(`Event visibility updated to ${!currentVisibility ? 'public' : 'private'}`);
-    fetchData(); // Refresh data
-  } catch (error: any) {
-    console.error('Error updating event visibility:', error);
-    toast.error(`Error updating visibility: ${error.message}`);
-  }
-};
+  const confirmBidAction = async () => {
+    if (!selectedBid || !actionType || (actionType !== "approve" && actionType !== "reject")) return;
 
-  // If still loading auth state, show loading
+    try {
+      // Update the bid status in the database
+      const { error } = await supabase
+        .from("bids")
+        .update({
+          status: actionType === "approve" ? "approved" : "rejected",
+          admin_response: adminResponse
+        })
+        .eq("id", selectedBid.id);
+
+      if (error) throw error;
+
+      // Send email notification
+      await supabase.functions.invoke("send-notification", {
+        body: {
+          type: "bid_status_update",
+          data: {
+            brandName: selectedBid.brand_name,
+            eventName: selectedBid.events?.title || "the event",
+            email: selectedBid.email,
+            bidAmount: selectedBid.bid_amount,
+            contactName: selectedBid.contact_name,
+            status: actionType,
+            adminResponse: adminResponse
+          }
+        }
+      });
+
+      toast.success(`Bid ${actionType === "approve" ? "approved" : "rejected"} successfully`);
+      setBidActionDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error(`Error ${actionType}ing bid:`, error);
+      toast.error(`Failed to ${actionType} bid`);
+    }
+  };
+
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
   }
-  
-  // If not admin, redirect to login
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
+
   if (!isAdmin) {
-    return <Navigate to="/login" />;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 container mx-auto px-4 py-16 flex items-center justify-center">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle>Access Denied</CardTitle>
+              <CardDescription>
+                You don't have permission to access the admin area.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <p>
+                If you believe this is an error, please contact the system
+                administrator.
+              </p>
+              <Button onClick={() => navigate("/")}>Return Home</Button>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="hidden md:flex w-64 flex-col bg-background border-r p-4 h-screen">
-          <div className="flex items-center mb-8">
-            <span className="text-xl font-semibold">sponsorby</span>
-            <span className="ml-2 bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">Admin</span>
-          </div>
-          
-          <div className="space-y-1">
-            <Button 
-              variant={activeTab === "dashboard" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("dashboard")}
-            >
-              <BarChart className="mr-2 h-4 w-4" />
-              Dashboard
-            </Button>
-            <Button 
-              variant={activeTab === "events" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("events")}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              Events
-            </Button>
-            <Button 
-              variant={activeTab === "bids" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("bids")}
-            >
-              <Tag className="mr-2 h-4 w-4" />
-              Sponsorship Bids
-            </Button>
-            <Button 
-              variant={activeTab === "settings" ? "default" : "ghost"} 
-              className="w-full justify-start" 
-              onClick={() => setActiveTab("settings")}
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </div>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
 
-          <div className="mt-auto">
-            <div className="flex items-center p-2 rounded-lg bg-primary/5">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src="/admin-avatar.png" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-muted-foreground">admin@sponsorby.com</p>
-              </div>
-            </div>
-          </div>
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 bg-background border-b py-4 px-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-light">Admin Dashboard</h1>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="w-64 pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => fetchData()}
-                  disabled={isFetching}
-                >
-                  {isFetching ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </div>
-            </div>
-          </header>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="mb-8 grid grid-cols-3 max-w-md">
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="bids">Bids</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-          <main className="p-6">
-            {activeTab === "dashboard" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Total Events
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{events.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {events.filter(e => e.status === 'approved').length} approved events
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Total Bids
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{bids.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {bids.filter(b => b.status === 'approved').length} approved bids
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Pending Approvals
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">
-                        {events.filter(e => e.status === 'pending').length + 
-                         bids.filter(b => b.status === 'pending').length}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {events.filter(e => e.status === 'pending').length} events, {bids.filter(b => b.status === 'pending').length} bids
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Recent Events</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {events.slice(0, 3).map((event) => (
-                          <div key={event.id} className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback>{event.organizer_name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-sm font-medium">{event.title}</p>
-                                <p className="text-xs text-muted-foreground">{event.organizer_name}</p>
-                              </div>
-                            </div>
-                            <Badge variant={event.status === 'pending' ? 'outline' : (event.status === 'approved' ? 'default' : 'destructive')}>{event.status}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab("events")}>
-                        View all
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Recent Bids</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {bids.slice(0, 3).map((bid) => (
-                          <div key={bid.id} className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback>{bid.brand_name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-sm font-medium">{bid.brand_name}</p>
-                                <p className="text-xs text-muted-foreground">{bid.events?.title || 'Unknown Event'}</p>
-                              </div>
-                            </div>
-                            <Badge variant={bid.status === 'pending' ? 'outline' : (bid.status === 'approved' ? 'default' : 'destructive')}>
-                              {bid.status}
+          <TabsContent value="events" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Events Management</CardTitle>
+                <CardDescription>
+                  Manage events posted on the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Packages</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {events.map((event) => (
+                        <TableRow key={event.id}>
+                          <TableCell className="font-medium">
+                            {event.title}
+                          </TableCell>
+                          <TableCell>
+                            {event.date ? format(new Date(event.date), "PPP") : "N/A"}
+                          </TableCell>
+                          <TableCell>{event.location}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                event.is_public
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {event.is_public ? "Public" : "Hidden"}
                             </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab("bids")}>
-                        View all
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center gap-1"
+                              onClick={() => handleViewPackages(event.id)}
+                            >
+                              <Package className="h-4 w-4" />
+                              <span>View</span>
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditEvent(event)}
+                            >
+                              Edit
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {events.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-6">
+                            No events found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {activeTab === "events" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-light">Events</h2>
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="text-sm py-1">
-                      {events.filter(e => e.status === 'pending').length} Pending
-                    </Badge>
-                    <Badge variant="default" className="text-sm py-1">
-                      {events.filter(e => e.status === 'approved').length} Approved
-                    </Badge>
-                    <Badge variant="destructive" className="text-sm py-1">
-                      {events.filter(e => e.status === 'rejected').length} Rejected
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {filterData(events).length > 0 ? (
-                    filterData(events).map((event) => (
-                      <Card key={event.id}>
-                        <CardHeader>
-                          <div className="flex justify-between">
-                            <div>
-                              <CardTitle className="flex items-center gap-2">
-                                {event.title}
-                                <Badge variant={event.status === 'pending' ? 'outline' : (event.status === 'approved' ? 'default' : 'destructive')}>
-                                  {event.status}
-                                </Badge>
-                                {event.is_public !== undefined && (
-                                  <Badge variant={event.is_public ? 'default' : 'outline'} className="ml-2">
-                                    {event.is_public ? 'Public' : 'Private'}
-                                  </Badge>
-                                )}
-                              </CardTitle>
-                              <CardDescription>
-                                Organized by {event.organizer_name} • {new Date(event.date).toLocaleDateString()}
-                              </CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                              {event.status === 'pending' && (
-                                <>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
-                                    onClick={() => updateEventStatus(event.id, 'approved')}
-                                  >
-                                    <Check className="mr-1 h-4 w-4" /> Approve
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-                                    onClick={() => updateEventStatus(event.id, 'rejected')}
-                                  >
-                                    <X className="mr-1 h-4 w-4" /> Reject
-                                  </Button>
-                                </>
-                              )}
-                              {event.status === 'approved' && (
-                                <div className="flex gap-2">
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => handleEditEvent(event)}
-                                  >
-                                    <Edit className="mr-1 h-4 w-4" /> Edit
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    onClick={() => toggleEventVisibility(event.id, event.is_public)}
-                                  >
-                                    {event.is_public ? 'Make Private' : 'Make Public'}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm font-medium">Location</p>
-                              <p className="text-sm text-muted-foreground">{event.venue}, {event.location}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Expected Attendees</p>
-                              <p className="text-sm text-muted-foreground">{event.attendees}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Sponsorship Range</p>
-                              <p className="text-sm text-muted-foreground">AED {Number(event.min_bid).toLocaleString()} - AED {Number(event.max_bid).toLocaleString()}</p>
-                            </div>
-                          </div>
-                          
-                          <Separator className="my-4" />
-                          
-                          <div>
-                            <p className="text-sm font-medium mb-2">Description</p>
-                            <p className="text-sm text-muted-foreground">{event.description}</p>
-                          </div>
-                          
-                          <Separator className="my-4" />
-                          
-                          <div>
-                            <p className="text-sm font-medium mb-2">Contact Information</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">Phone: {event.phone}</p>
-                                <Badge variant={event.phone_verified ? "default" : "outline"} className="text-xs">
-                                  {event.phone_verified ? "Verified" : "Unverified"}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <Info className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No events found matching your search.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "bids" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-light">Sponsorship Bids</h2>
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="text-sm py-1">
-                      {bids.filter(b => b.status === 'pending').length} Pending
-                    </Badge>
-                    <Badge variant="default" className="text-sm py-1">
-                      {bids.filter(b => b.status === 'approved').length} Approved
-                    </Badge>
-                    <Badge variant="destructive" className="text-sm py-1">
-                      {bids.filter(b => b.status === 'rejected').length} Rejected
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {filterData(bids).length > 0 ? (
-                    filterData(bids).map((bid) => (
-                      <Card key={bid.id}>
-                        <CardHeader>
-                          <div className="flex justify-between">
-                            <div>
-                              <CardTitle className="flex items-center gap-2">
-                                {bid.brand_name}
-                                <Badge variant={bid.status === 'pending' ? 'outline' : (bid.status === 'approved' ? 'default' : 'destructive')}>
-                                  {bid.status}
-                                </Badge>
-                              </CardTitle>
-                              <CardDescription>
-                                For event: {bid.events?.title || 'Unknown Event'} • Bid Amount: AED {Number(bid.bid_amount).toLocaleString()}
-                              </CardDescription>
-                            </div>
-                            {bid.status === 'pending' && (
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-green-500 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
-                                  onClick={() => handleBidAction(bid.id, 'approved')}
+          <TabsContent value="bids" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bids Management</CardTitle>
+                <CardDescription>
+                  Review and manage sponsorship bids
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Brand</TableHead>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bids.map((bid) => (
+                        <TableRow key={bid.id}>
+                          <TableCell className="font-medium">
+                            {bid.brand_name}
+                          </TableCell>
+                          <TableCell>{bid.events?.title || "N/A"}</TableCell>
+                          <TableCell>AED {bid.bid_amount.toLocaleString()}</TableCell>
+                          <TableCell>
+                            {format(new Date(bid.created_at), "PPP")}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                bid.status === "approved"
+                                  ? "success"
+                                  : bid.status === "rejected"
+                                  ? "destructive"
+                                  : "default"
+                              }
+                            >
+                              {bid.status || "pending"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {bid.status === "pending" && (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-destructive"
+                                  onClick={() => handleBidAction(bid, "reject")}
                                 >
-                                  <Check className="mr-1 h-4 w-4" /> Approve
+                                  <X className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-red-500 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-                                  onClick={() => handleBidAction(bid.id, 'rejected')}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-success"
+                                  onClick={() => handleBidAction(bid, "approve")}
                                 >
-                                  <X className="mr-1 h-4 w-4" /> Reject
+                                  <Check className="h-4 w-4" />
                                 </Button>
                               </div>
                             )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm font-medium">Business Information</p>
-                              <p className="text-sm text-muted-foreground">Nature: {bid.business_nature}</p>
-                              <p className="text-sm text-muted-foreground">Location: {bid.company_address}, {bid.emirate}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Contact Information</p>
-                              <p className="text-sm text-muted-foreground">Name: {bid.contact_name}</p>
-                              <p className="text-sm text-muted-foreground">Email: {bid.email}</p>
-                              <p className="text-sm text-muted-foreground">Phone: {bid.phone}</p>
-                              <Badge variant={bid.phone_verified ? "default" : "outline"} className="text-xs mt-1">
-                                {bid.phone_verified ? "Phone Verified" : "Phone Unverified"}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          {bid.message && (
-                            <>
-                              <Separator className="my-4" />
-                              <div>
-                                <p className="text-sm font-medium mb-2">Additional Message</p>
-                                <p className="text-sm text-muted-foreground">{bid.message}</p>
-                              </div>
-                            </>
-                          )}
-
-                          {bid.admin_response && (
-                            <>
-                              <Separator className="my-4" />
-                              <div>
-                                <p className="text-sm font-medium mb-2">Admin Response</p>
-                                <p className="text-sm text-muted-foreground">{bid.admin_response}</p>
-                              </div>
-                            </>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <Info className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No bids found matching your search.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "settings" && (
-              <div className="space-y-8 max-w-2xl">
-                <h2 className="text-2xl font-light">Settings</h2>
-                
-                <AdminSettings 
-                  settings={adminSettings}
-                  onSettingsSaved={fetchData}
-                />
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Email Notifications</CardTitle>
-                    <CardDescription>
-                      Add email addresses that will receive notifications when new events or bids are submitted.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="Enter email address" 
-                        value={newEmail} 
-                        onChange={(e) => setNewEmail(e.target.value)}
-                      />
-                      <Button onClick={addEmail}>Add</Button>
-                    </div>
-                    
-                    <div className="space-y-2 mt-4">
-                      {notificationEmails.map((email) => (
-                        <div key={email} className="flex items-center justify-between bg-muted/40 p-2 rounded-md">
-                          <span className="text-sm">{email}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => removeEmail(email)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                      
-                      {notificationEmails.length === 0 && (
-                        <p className="text-sm text-muted-foreground">No notification emails added yet.</p>
+                      {bids.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-6">
+                            No bids found
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      onClick={saveEmailSettings} 
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
-            )}
-          </main>
-        </div>
-      </div>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      {/* Custom Response Dialog */}
-      <Dialog open={isResponseDialogOpen} onOpenChange={setIsResponseDialogOpen}>
-        <DialogContent>
+          <TabsContent value="settings">
+            <AdminSettings />
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <Footer />
+
+      {/* Event Editor Dialog */}
+      <EventEditor 
+        isOpen={isEditEventOpen}
+        onClose={() => setIsEditEventOpen(false)}
+        event={eventToEdit}
+        onEventUpdated={handleEventUpdated}
+      />
+
+      {/* Bid Action Dialog */}
+      <Dialog open={bidActionDialogOpen} onOpenChange={setBidActionDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {responseAction === 'approved' ? 'Approve' : 'Reject'} Sponsorship Bid
+              {actionType === "approve" 
+                ? "Approve Bid" 
+                : actionType === "reject" 
+                ? "Reject Bid" 
+                : "Sponsorship Packages"}
             </DialogTitle>
             <DialogDescription>
-              {responseAction === 'approved' 
-                ? 'Add a custom response to the bidder to confirm approval.' 
-                : 'Please provide a reason for rejecting this bid.'}
+              {actionType === "view_packages" 
+                ? `Packages for ${selectedBid?.eventTitle}`
+                : `${actionType === "approve" ? "Approve" : "Reject"} bid from ${selectedBid?.brand_name} for ${selectedBid?.events?.title}`}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <Textarea
-              placeholder="Enter your response to the bidder..."
-              value={customResponse}
-              onChange={(e) => setCustomResponse(e.target.value)}
-              rows={5}
-              className="resize-none"
-            />
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsResponseDialogOpen(false)}>
+          {actionType === "view_packages" ? (
+            <div className="space-y-4 py-2">
+              {selectedBid?.packages?.map((pkg: any) => (
+                <div key={pkg.id} className="border rounded-md p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-medium">{pkg.name}</h3>
+                    <Badge variant="outline">AED {pkg.price.toLocaleString()}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                </div>
+              ))}
+              {(!selectedBid?.packages || selectedBid.packages.length === 0) && (
+                <p className="text-center text-muted-foreground py-4">No packages found</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <Textarea
+                placeholder="Enter a response message to be included in the notification email..."
+                value={adminResponse}
+                onChange={(e) => setAdminResponse(e.target.value)}
+                rows={4}
+              />
+            </div>
+          )}
+
+          <DialogFooter className="flex sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setBidActionDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              onClick={updateBidStatus}
-              variant={responseAction === 'approved' ? 'default' : 'destructive'}
-            >
-              {responseAction === 'approved' ? 'Approve' : 'Reject'} Bid
-            </Button>
+            
+            {actionType !== "view_packages" && (
+              <Button
+                type="button"
+                variant={actionType === "approve" ? "default" : "destructive"}
+                onClick={confirmBidAction}
+              >
+                {actionType === "approve" ? "Approve Bid" : "Reject Bid"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Event Editor Dialog */}
-      <EventEditor
-        isOpen={isEventEditorOpen}
-        onClose={() => setIsEventEditorOpen(false)}
-        event={selectedEvent}
-        onEventUpdated={fetchData}
-      />
     </div>
   );
 };

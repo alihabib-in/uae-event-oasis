@@ -190,7 +190,7 @@ const PostEventPage = () => {
       // Send admin notification
       await supabase.functions.invoke("send-notification", {
         body: {
-          type: "event",
+          type: "event_submission",
           data: {
             eventId,
             eventName: form.getValues("eventName"),

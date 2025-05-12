@@ -1,236 +1,193 @@
 
-// Adding the contact page link to the Navbar
-import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { navigationItems } from "@/data/navigationItems";
-import { ModeToggle } from "@/components/ModeToggle";
-import { Menu, X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/components/AuthProvider";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu, X, ChevronDown, User, LogIn } from "lucide-react";
+import Logo from "@/components/Logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { navigationItems } from "@/data/navigationItems";
+import { cn } from "@/lib/utils";
+import { useMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/components/AuthProvider";
+import { ModeToggle } from "@/components/ModeToggle";
+
+const NavbarItem = ({
+  href,
+  label,
+  icon,
+  active,
+}: {
+  href: string;
+  label: string;
+  icon?: React.ReactNode;
+  active: boolean;
+}) => {
+  return (
+    <Link
+      to={href}
+      className={cn(
+        "relative px-4 py-2 rounded-md text-sm font-medium transition-colors",
+        active
+          ? "text-primary bg-primary/10 hover:bg-primary/20"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+      )}
+    >
+      <div className="flex items-center gap-2">
+        {icon}
+        {label}
+      </div>
+      {active && (
+        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+      )}
+    </Link>
+  );
+};
 
 const Navbar = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isMobile = useMobile();
+  const [scrolled, setScrolled] = useState(false);
+  const { user, signOut } = useAuth();
 
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const isActive = (path: string) => {
+    if (path === "/" && location.pathname !== "/") {
+      return false;
+    }
+    return location.pathname.startsWith(path);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur-lg bg-background/70 border-b">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center gap-2 mr-6">
-            <img src="/logo.svg" alt="sponsorby logo" className="h-8 w-8" />
-            <span className="text-xl font-bold tracking-tighter">sponsorby</span>
-          </Link>
-          
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link
-              to="/events"
-              className={`text-sm hover:text-primary transition-colors ${location.pathname === "/events" ? "text-primary font-medium" : ""}`}
-            >
-              Events
-            </Link>
-            <Link
-              to="/for-brands"
-              className={`text-sm hover:text-primary transition-colors ${location.pathname === "/for-brands" ? "text-primary font-medium" : ""}`}
-            >
-              For Brands
-            </Link>
-            <Link
-              to="/for-organizers"
-              className={`text-sm hover:text-primary transition-colors ${location.pathname === "/for-organizers" ? "text-primary font-medium" : ""}`}
-            >
-              For Organizers
-            </Link>
-            <Link
-              to="/contact"
-              className={`text-sm hover:text-primary transition-colors ${location.pathname === "/contact" ? "text-primary font-medium" : ""}`}
-            >
-              Contact Us
-            </Link>
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={`text-sm text-primary font-medium hover:text-primary transition-colors ${location.pathname === "/admin" ? "underline" : ""}`}
-              >
-                Admin
-              </Link>
-            )}
-          </nav>
+    <nav
+      className={cn(
+        "sticky top-0 z-40 w-full transition-all duration-200",
+        scrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-background"
+      )}
+    >
+      <div className="container mx-auto flex items-center justify-between h-16 px-4 sm:px-6">
+        {/* Logo */}
+        <Link to="/" className="flex-shrink-0">
+          <Logo className="h-8 w-auto" />
+        </Link>
+
+        {/* Center Nav Items - Desktop */}
+        <div className="hidden md:flex items-center justify-center flex-grow">
+          <div className="flex items-center space-x-1">
+            {navigationItems.map((item) => (
+              <NavbarItem
+                key={item.path}
+                href={item.path}
+                label={item.name}
+                active={isActive(item.path)}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Right side actions */}
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2">
-            <ModeToggle />
-            {!user ? (
-              <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/login">Log in</Link>
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ModeToggle />
+          
+          {/* User Menu or Auth Buttons */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <User className="h-5 w-5" />
                 </Button>
-                <Button size="sm" asChild>
-                  <Link to="/auth">Sign up</Link>
-                </Button>
-              </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-1 bg-background">
+                <Link to="/account">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>My Account</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => signOut()}>
+                  <LogIn className="mr-2 h-4 w-4 rotate-180" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="hidden sm:flex gap-2">
+              <Button variant="ghost" asChild>
+                <Link to="/auth?mode=login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/auth?mode=signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="" alt={user.email || ""} />
-                      <AvatarFallback>
-                        {user.email?.substring(0, 2).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {user.email && (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      {user.email}
-                    </div>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <Link to="/account">Account</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/post-event">Post Event</Link>
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">Admin Dashboard</Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut}>Log out</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Menu className="h-6 w-6" />
             )}
-          </div>
-
-          {/* Mobile navigation */}
-          <div className="md:hidden flex items-center">
-            <ModeToggle />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-2"
-              onClick={toggleMenu}
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
+          </Button>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isMenuOpen && isMobile && (
-        <div className="md:hidden border-t">
-          <div className="container mx-auto px-4 py-4 flex flex-col">
-            <Link
-              to="/events"
-              className="py-2 text-sm hover:text-primary transition-colors"
-            >
-              Events
-            </Link>
-            <Link
-              to="/for-brands"
-              className="py-2 text-sm hover:text-primary transition-colors"
-            >
-              For Brands
-            </Link>
-            <Link
-              to="/for-organizers"
-              className="py-2 text-sm hover:text-primary transition-colors"
-            >
-              For Organizers
-            </Link>
-            <Link
-              to="/contact"
-              className="py-2 text-sm hover:text-primary transition-colors"
-            >
-              Contact Us
-            </Link>
-            {isAdmin && (
+      {/* Mobile Navigation Menu */}
+      {isMobile && mobileMenuOpen && (
+        <div className="md:hidden bg-background border-t">
+          <div className="px-2 pt-2 pb-4 space-y-1 sm:px-3">
+            {navigationItems.map((item) => (
               <Link
-                to="/admin"
-                className="py-2 text-sm text-primary hover:text-primary transition-colors"
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "block px-3 py-2 rounded-md text-base font-medium",
+                  isActive(item.path)
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
               >
-                Admin
+                {item.name}
               </Link>
+            ))}
+            {!user && (
+              <div className="pt-2 flex flex-col gap-2">
+                <Button asChild className="w-full">
+                  <Link to="/auth?mode=login" onClick={() => setMobileMenuOpen(false)}>
+                    Login
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </div>
             )}
-            <div className="border-t my-2 pt-2">
-              {!user ? (
-                <div className="flex flex-col gap-2">
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/login">Log in</Link>
-                  </Button>
-                  <Button className="w-full" asChild>
-                    <Link to="/auth">Sign up</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="" alt={user.email || ""} />
-                      <AvatarFallback>
-                        {user.email?.substring(0, 2).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm font-medium">{user.email}</div>
-                  </div>
-                  <Link
-                    to="/account"
-                    className="py-2 text-sm hover:text-primary transition-colors"
-                  >
-                    Account
-                  </Link>
-                  <Link
-                    to="/post-event"
-                    className="py-2 text-sm hover:text-primary transition-colors"
-                  >
-                    Post Event
-                  </Link>
-                  <button
-                    onClick={signOut}
-                    className="py-2 text-sm hover:text-primary transition-colors text-left"
-                  >
-                    Log out
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
-    </header>
+    </nav>
   );
 };
 

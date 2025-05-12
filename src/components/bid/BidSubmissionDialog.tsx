@@ -88,7 +88,27 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
   }, [isOpen, eventId]);
 
   const onSubmit = async (values: BidFormValues) => {
-    await submitBid(values);
+    const result = await submitBid(values);
+    if (result.bidId) {
+      // Send notification to admins about the new bid
+      try {
+        await supabase.functions.invoke("send-notification", {
+          body: {
+            type: "bid_submission",
+            data: {
+              bidId: result.bidId,
+              eventName: eventDetails.title,
+              brandName: values.brandName,
+              contactName: values.contactName,
+              contactEmail: values.email,
+              bidAmount: values.bidAmount
+            }
+          },
+        });
+      } catch (error) {
+        console.error("Failed to send admin notification:", error);
+      }
+    }
     onOpenChange(false); // Close the dialog after submission
   };
 

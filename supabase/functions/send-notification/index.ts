@@ -1,230 +1,211 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+// supabase/functions/send-notification/index.ts
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-// CORS headers for browser compatibility
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  // Handle OPTIONS request for CORS
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-  
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    // Get the request body
-    const body = await req.json();
-    const { type, data } = body;
+    const { type, data } = await req.json();
+
+    if (!type) {
+      return new Response(JSON.stringify({ error: "Missing notification type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Get admin email addresses from settings
+    const adminClient = new SmtpClient();
     
-    // Get Supabase client using environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: adminSettings, error: settingsError } = await (await fetch(
+      `${Deno.env.get("SUPABASE_URL")}/rest/v1/admin_settings?select=notification_emails`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "ApiKey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+      }
+    )).json();
+
+    if (settingsError || !adminSettings || adminSettings.length === 0) {
+      console.error("Error fetching admin settings:", settingsError);
+      throw new Error("Failed to fetch admin emails");
+    }
+
+    const adminEmails = adminSettings[0].notification_emails || ["admin@sponsorby.com"];
+    
+    // Configure SMTP
+    await adminClient.connectTLS({
+      hostname: Deno.env.get("SMTP_HOST") || "",
+      port: parseInt(Deno.env.get("SMTP_PORT") || "587"),
+      username: Deno.env.get("SMTP_USERNAME") || "",
+      password: Deno.env.get("SMTP_PASSWORD") || "",
+    });
+
+    let emailSent = false;
 
     // Handle different notification types
-    if (type === 'bid_status_update') {
-      console.log(`Processing bid_status_update notification`);
-      await handleBidStatusUpdate(data, supabase);
-    } else if (type === 'event_submission') {
-      console.log(`Processing event_submission notification`);
-      await handleEventSubmission(data, supabase);
-    } else if (type === 'bid_submission') {
-      console.log(`Processing bid_submission notification`);
-      await handleBidSubmission(data, supabase);
-    } else {
-      throw new Error(`Unsupported notification type: ${type}`);
+    switch (type) {
+      case "new_bid": {
+        // Notify admins about new bid
+        const { brandName, bidAmount, eventId, contactName, email, phone } = data;
+        
+        // Get event details
+        const { data: eventData } = await (await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/rest/v1/events?id=eq.${eventId}&select=title`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "ApiKey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+          }
+        )).json();
+        
+        const eventTitle = eventData && eventData.length > 0 ? eventData[0].title : "Unknown Event";
+        
+        await adminClient.send({
+          from: Deno.env.get("SMTP_FROM") || "notifications@sponsorby.com",
+          to: adminEmails,
+          subject: `New Bid Submission: ${brandName} for ${eventTitle}`,
+          content: `
+            <h2>New Bid Submission</h2>
+            <p>A new sponsorship bid has been submitted on the platform:</p>
+            <ul>
+              <li><strong>Brand:</strong> ${brandName}</li>
+              <li><strong>Event:</strong> ${eventTitle}</li>
+              <li><strong>Bid Amount:</strong> AED ${bidAmount.toLocaleString()}</li>
+              <li><strong>Contact:</strong> ${contactName} (${email}, ${phone})</li>
+            </ul>
+            <p>Log in to the admin dashboard to review and respond to this bid.</p>
+          `,
+          html: true,
+        });
+        
+        emailSent = true;
+        break;
+      }
+      
+      case "new_event": {
+        // Notify admins about new event
+        const { eventTitle, organizer, location, date } = data;
+        
+        await adminClient.send({
+          from: Deno.env.get("SMTP_FROM") || "notifications@sponsorby.com",
+          to: adminEmails,
+          subject: `New Event Posted: ${eventTitle}`,
+          content: `
+            <h2>New Event Posted</h2>
+            <p>A new event has been posted on the platform:</p>
+            <ul>
+              <li><strong>Event:</strong> ${eventTitle}</li>
+              <li><strong>Organizer:</strong> ${organizer}</li>
+              <li><strong>Location:</strong> ${location}</li>
+              <li><strong>Date:</strong> ${date}</li>
+            </ul>
+            <p>Log in to the admin dashboard to review this event.</p>
+          `,
+          html: true,
+        });
+        
+        emailSent = true;
+        break;
+      }
+      
+      case "bid_status_update": {
+        // Notify brand about bid status
+        const { brandName, eventName, email, bidAmount, contactName, status, adminResponse } = data;
+        
+        // Subject line based on status
+        const subject = status === "approve" 
+          ? `Good News! Your Bid for ${eventName} has been Approved` 
+          : `Update on Your Bid for ${eventName}`;
+        
+        // Different content based on status
+        const content = status === "approve" 
+          ? `
+            <h2>Your Sponsorship Bid Has Been Approved!</h2>
+            <p>Dear ${contactName},</p>
+            <p>We're pleased to inform you that your sponsorship bid for <strong>${eventName}</strong> has been approved.</p>
+            <p><strong>Bid Details:</strong></p>
+            <ul>
+              <li><strong>Brand:</strong> ${brandName}</li>
+              <li><strong>Event:</strong> ${eventName}</li>
+              <li><strong>Amount:</strong> AED ${bidAmount.toLocaleString()}</li>
+            </ul>
+            ${adminResponse ? `<p><strong>Message from the Admin:</strong></p><p>${adminResponse}</p>` : ''}
+            <p>Our team will be in touch shortly with the next steps.</p>
+            <p>Thank you for using SponsorBy!</p>
+          `
+          : `
+            <h2>Update on Your Sponsorship Bid</h2>
+            <p>Dear ${contactName},</p>
+            <p>We regret to inform you that your sponsorship bid for <strong>${eventName}</strong> has not been approved at this time.</p>
+            <p><strong>Bid Details:</strong></p>
+            <ul>
+              <li><strong>Brand:</strong> ${brandName}</li>
+              <li><strong>Event:</strong> ${eventName}</li>
+              <li><strong>Amount:</strong> AED ${bidAmount.toLocaleString()}</li>
+            </ul>
+            ${adminResponse ? `<p><strong>Feedback from the Admin:</strong></p><p>${adminResponse}</p>` : ''}
+            <p>We encourage you to explore other sponsorship opportunities on our platform.</p>
+            <p>Thank you for using SponsorBy!</p>
+          `;
+        
+        await adminClient.send({
+          from: Deno.env.get("SMTP_FROM") || "notifications@sponsorby.com",
+          to: email,
+          subject,
+          content,
+          html: true,
+        });
+        
+        emailSent = true;
+        break;
+      }
+      
+      default:
+        throw new Error(`Unknown notification type: ${type}`);
+    }
+
+    await adminClient.close();
+
+    if (!emailSent) {
+      return new Response(JSON.stringify({ error: "Failed to send notification" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error(`Error in notification function:`, error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
-    );
+    console.error("Error in send-notification function:", error);
+    
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
-
-async function handleBidStatusUpdate(data: any, supabase: any) {
-  const { 
-    brandName, 
-    eventName, 
-    email, 
-    bidAmount, 
-    contactName, 
-    status, 
-    adminResponse 
-  } = data;
-  
-  console.log(`Sending bid status update email to bidder at: ${email}`);
-  
-  // Create email subject based on status
-  const subject = status === 'approved' 
-    ? "Your SponsorBy Bid Has Been Approved"
-    : "Your SponsorBy Bid Has Been Rejected";
-  
-  // Create email content based on status
-  let content = '';
-  if (status === 'approved') {
-    content = `
-      Dear ${contactName},
-      
-      We are writing to inform you that your sponsorship bid for the event "${eventName}" has been approved.
-      
-      ${adminResponse ? `\nMessage from the SponsorBy Team:\n${adminResponse}\n` : ''}
-      
-      Bid Details:
-      - Brand: ${brandName}
-      - Event: ${eventName}
-      - Bid Amount: AED ${Number(bidAmount).toLocaleString()}
-      
-      Our team will contact you soon with next steps for finalizing the sponsorship arrangement.
-      
-      Best regards,
-      The SponsorBy Team
-    `;
-  } else {
-    content = `
-      Dear ${contactName},
-      
-      We regret to inform you that your sponsorship bid for the event "${eventName}" has been rejected.
-      
-      ${adminResponse ? `\nMessage from the SponsorBy Team:\n${adminResponse}\n` : ''}
-      
-      Bid Details:
-      - Brand: ${brandName}
-      - Event: ${eventName}
-      - Bid Amount: AED ${Number(bidAmount).toLocaleString()}
-      
-      We appreciate your interest and hope to work with you on future opportunities.
-      
-      Best regards,
-      The SponsorBy Team
-    `;
-  }
-  
-  console.log(`Subject: ${subject}`);
-  console.log(`Content: ${content}`);
-  console.log(`Status: ${status}, Custom response: ${adminResponse}`);
-  
-  // Get admin settings to find notification emails
-  const { data: adminSettings } = await supabase
-    .from('admin_settings')
-    .select('notification_emails')
-    .single();
-    
-  if (adminSettings && adminSettings.notification_emails) {
-    // Send notification to all admin emails
-    console.log(`Sending notification to admins: ${adminSettings.notification_emails.join(', ')}`);
-    
-    // In a real implementation, you would send admin notification emails here
-  }
-  
-  // Here we would typically send the email using an email service
-  // For now, we're just logging the details since this is a demo
-  // In a real implementation, you would use a service like SendGrid, Mailgun, etc.
-  
-  // Return true to indicate success
-  return true;
-}
-
-async function handleEventSubmission(data: any, supabase: any) {
-  const {
-    eventId,
-    eventName,
-    organizerName,
-    organizerEmail,
-    organizerPhone
-  } = data;
-  
-  console.log(`Processing event submission notification for: ${eventName}`);
-  
-  // Get admin settings to find notification emails
-  const { data: adminSettings } = await supabase
-    .from('admin_settings')
-    .select('notification_emails')
-    .single();
-    
-  if (adminSettings && adminSettings.notification_emails) {
-    // Send notification to all admin emails
-    console.log(`Sending event submission notification to admins: ${adminSettings.notification_emails.join(', ')}`);
-    
-    const adminSubject = `New Event Submission: ${eventName}`;
-    const adminContent = `
-      Dear Admin,
-      
-      A new event has been submitted to SponsorBy:
-      
-      Event Name: ${eventName}
-      Organizer: ${organizerName}
-      Contact: ${organizerEmail} / ${organizerPhone}
-      
-      Please review this submission on the admin dashboard.
-      
-      - SponsorBy Platform
-    `;
-    
-    console.log(`Admin Subject: ${adminSubject}`);
-    console.log(`Admin Content: ${adminContent}`);
-    
-    // In a real implementation, you would send emails to all admin emails here
-  }
-  
-  return true;
-}
-
-async function handleBidSubmission(data: any, supabase: any) {
-  const {
-    bidId,
-    eventName,
-    brandName,
-    contactName,
-    contactEmail,
-    bidAmount
-  } = data;
-  
-  console.log(`Processing bid submission notification for: ${brandName} on ${eventName}`);
-  
-  // Get admin settings to find notification emails
-  const { data: adminSettings } = await supabase
-    .from('admin_settings')
-    .select('notification_emails')
-    .single();
-    
-  if (adminSettings && adminSettings.notification_emails) {
-    // Send notification to all admin emails
-    console.log(`Sending bid submission notification to admins: ${adminSettings.notification_emails.join(', ')}`);
-    
-    const adminSubject = `New Sponsorship Bid: ${brandName} for ${eventName}`;
-    const adminContent = `
-      Dear Admin,
-      
-      A new sponsorship bid has been submitted to SponsorBy:
-      
-      Event: ${eventName}
-      Brand: ${brandName}
-      Contact: ${contactName} (${contactEmail})
-      Bid Amount: AED ${Number(bidAmount).toLocaleString()}
-      
-      Please review this bid on the admin dashboard.
-      
-      - SponsorBy Platform
-    `;
-    
-    console.log(`Admin Subject: ${adminSubject}`);
-    console.log(`Admin Content: ${adminContent}`);
-    
-    // In a real implementation, you would send emails to all admin emails here
-  }
-  
-  return true;
-}

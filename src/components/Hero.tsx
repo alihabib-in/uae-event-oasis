@@ -17,7 +17,10 @@ const Hero = () => {
           .select('hero_video_url')
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching hero video URL:", error);
+          return;
+        }
         
         if (data && data.hero_video_url) {
           setHeroVideoUrl(data.hero_video_url);

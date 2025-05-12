@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { navigationItems } from "@/data/navigationItems";
 import { cn } from "@/lib/utils";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile"; // Fixed import name
 import { useAuth } from "@/components/AuthProvider";
 import { ModeToggle } from "@/components/ModeToggle";
 
@@ -51,7 +51,7 @@ const NavbarItem = ({
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile(); // Fixed hook name
   const [scrolled, setScrolled] = useState(false);
   const { user, signOut } = useAuth();
 
@@ -81,7 +81,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-4 sm:px-6">
         {/* Logo */}
         <Link to="/" className="flex-shrink-0">
-          <Logo className="h-8 w-auto" />
+          <Logo /* Removed className that doesn't exist in the Props interface */ />
         </Link>
 
         {/* Center Nav Items - Desktop */}

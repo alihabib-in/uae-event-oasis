@@ -19,6 +19,10 @@ export type BidFormValues = {
   website: string;
 };
 
+export type BidSubmissionResult = {
+  bidId: string | null;
+};
+
 export const useBidSubmission = (eventId: string | undefined) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bidId, setBidId] = useState<string | null>(null);
@@ -39,10 +43,10 @@ export const useBidSubmission = (eventId: string | undefined) => {
     website: z.string().optional(),
   });
 
-  const submitBid = async (values: BidFormValues) => {
+  const submitBid = async (values: BidFormValues): Promise<BidSubmissionResult> => {
     if (!eventId) {
       toast.error("No event selected");
-      return;
+      return { bidId: null };
     }
 
     setIsSubmitting(true);
@@ -79,6 +83,7 @@ export const useBidSubmission = (eventId: string | undefined) => {
         if (bidResult && bidResult.length > 0) {
           setBidId(bidResult[0].id);
           setIsVerificationModalOpen(true);
+          return { bidId: bidResult[0].id };
         }
       } else {
         // Skip OTP verification and insert the bid with phone_verified=true
@@ -94,13 +99,16 @@ export const useBidSubmission = (eventId: string | undefined) => {
 
         if (bidResult && bidResult.length > 0) {
           toast.success("Your bid has been submitted successfully!");
-          return bidResult[0].id;
+          return { bidId: bidResult[0].id };
         }
       }
+
+      return { bidId: null };
     } catch (error: any) {
       console.error("Error submitting bid:", error);
       toast.error(error.message || "Failed to submit bid");
       setIsSubmitting(false);
+      return { bidId: null };
     }
   };
 
@@ -109,32 +117,34 @@ export const useBidSubmission = (eventId: string | undefined) => {
     
     try {
       // Update the bid record to mark phone as verified
-      const { error } = await supabase
-        .from('bids')
-        .update({ phone_verified: true })
-        .eq('id', bidId);
-      
-      if (error) throw error;
-      
-      toast.success("Your bid has been submitted successfully!");
-      
-      // Send notification to admins
-      try {
-        await supabase.functions.invoke('send-notification', {
-          body: {
-            type: 'new_bid',
-            data: {
-              eventId,
-              brandName: formValues.brandName,
-              bidAmount: formValues.bidAmount,
-              contactName: formValues.contactName,
-              email: formValues.email,
-              phone: formValues.phone
+      if (bidId) {
+        const { error } = await supabase
+          .from('bids')
+          .update({ phone_verified: true })
+          .eq('id', bidId);
+        
+        if (error) throw error;
+        
+        toast.success("Your bid has been submitted successfully!");
+        
+        // Send notification to admins
+        try {
+          await supabase.functions.invoke('send-notification', {
+            body: {
+              type: 'new_bid',
+              data: {
+                eventId,
+                brandName: formValues.brandName,
+                bidAmount: formValues.bidAmount,
+                contactName: formValues.contactName,
+                email: formValues.email,
+                phone: formValues.phone
+              }
             }
-          }
-        });
-      } catch (notificationError) {
-        console.error("Failed to send notification:", notificationError);
+          });
+        } catch (notificationError) {
+          console.error("Failed to send notification:", notificationError);
+        }
       }
     } catch (error: any) {
       console.error("Error updating bid verification:", error);

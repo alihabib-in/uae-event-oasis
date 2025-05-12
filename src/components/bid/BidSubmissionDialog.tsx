@@ -89,7 +89,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
 
   const onSubmit = async (values: BidFormValues) => {
     const result = await submitBid(values);
-    if (result.bidId) {
+    if (result && result.bidId) { // Check if result exists and has bidId
       // Send notification to admins about the new bid
       try {
         await supabase.functions.invoke("send-notification", {
@@ -113,7 +113,9 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
   };
 
   const handleVerified = () => {
-    handlePhoneVerified(form.getValues("phone"), form.getValues());
+    if (bidId) { // Check if bidId exists before using it
+      handlePhoneVerified(form.getValues("phone"), form.getValues());
+    }
   };
 
   // Redirect to login if not authenticated
@@ -194,7 +196,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDia
         isOpen={isVerificationModalOpen}
         onOpenChange={setIsVerificationModalOpen}
         phone={form.getValues("phone")}
-        bidId={bidId}
+        bidId={bidId || ""} // Provide empty string as fallback
         onVerified={handleVerified}
       />
     </>

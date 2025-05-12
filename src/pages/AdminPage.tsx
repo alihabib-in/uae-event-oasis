@@ -39,6 +39,9 @@ import { useNavigate } from "react-router-dom";
 import EventEditor from "@/components/EventEditor";
 import { X, Check, Package } from "lucide-react";
 
+// Define all possible action types
+type ActionType = "approve" | "reject" | "view_packages" | null;
+
 const AdminPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [bids, setBids] = useState<any[]>([]);
@@ -51,7 +54,8 @@ const AdminPage = () => {
   // Dialog states for bid approval/rejection
   const [bidActionDialogOpen, setBidActionDialogOpen] = useState(false);
   const [selectedBid, setSelectedBid] = useState<any>(null);
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  // Updated the type to include "view_packages"
+  const [actionType, setActionType] = useState<ActionType>(null);
   const [adminResponse, setAdminResponse] = useState("");
 
   const { user } = useAuth();
@@ -143,6 +147,7 @@ const AdminPage = () => {
           packages: data,
           eventTitle: events.find((e) => e.id === eventId)?.title || "Event"
         });
+        // Use view_packages action type instead of string literal
         setActionType("view_packages");
         setBidActionDialogOpen(true);
       } else {
@@ -239,6 +244,13 @@ const AdminPage = () => {
       </div>
     );
   }
+
+  // Create a custom variant for success badges
+  const getBadgeVariant = (status: string) => {
+    if (status === "approved") return "default";
+    if (status === "rejected") return "destructive";
+    return "secondary"; // For pending or any other status
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -368,13 +380,7 @@ const AdminPage = () => {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={
-                                bid.status === "approved"
-                                  ? "success"
-                                  : bid.status === "rejected"
-                                  ? "destructive"
-                                  : "default"
-                              }
+                              variant={getBadgeVariant(bid.status || "pending")}
                             >
                               {bid.status || "pending"}
                             </Badge>
@@ -486,7 +492,7 @@ const AdminPage = () => {
               Cancel
             </Button>
             
-            {actionType !== "view_packages" && (
+            {actionType && actionType !== "view_packages" && (
               <Button
                 type="button"
                 variant={actionType === "approve" ? "default" : "destructive"}

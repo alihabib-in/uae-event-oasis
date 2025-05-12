@@ -12,6 +12,7 @@ export type Database = {
       admin_settings: {
         Row: {
           created_at: string
+          hero_video_url: string | null
           id: string
           notification_emails: string[]
           require_otp_verification: boolean
@@ -19,6 +20,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          hero_video_url?: string | null
           id?: string
           notification_emails?: string[]
           require_otp_verification?: boolean
@@ -26,6 +28,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          hero_video_url?: string | null
           id?: string
           notification_emails?: string[]
           require_otp_verification?: boolean

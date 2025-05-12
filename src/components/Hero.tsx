@@ -22,6 +22,7 @@ const Hero = () => {
           return;
         }
         
+        // The column now exists in the database after our migration
         if (data && data.hero_video_url) {
           setHeroVideoUrl(data.hero_video_url);
         }

@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("events");
   const [settings, setSettings] = useState<any>(null);
+  const [eventToEdit, setEventToEdit] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +35,12 @@ const AdminPage = () => {
     }
   };
 
+  const handleEditEvent = (event: any) => {
+    setEventToEdit(event);
+    // In a real implementation, you would redirect to an edit page or open a modal
+    console.log("Edit event:", event);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
@@ -46,7 +53,7 @@ const AdminPage = () => {
         </TabsList>
         
         <TabsContent value="events">
-          <EventsTab />
+          <EventsTab onEditEvent={handleEditEvent} />
         </TabsContent>
         
         <TabsContent value="bids">

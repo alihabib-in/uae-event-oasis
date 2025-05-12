@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -16,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, Package, Check } from "lucide-react";
 import BidSubmissionDialog from "@/components/bid/BidSubmissionDialog";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,9 +52,19 @@ interface Event {
   tags?: string[];
 }
 
+// Define sponsorship package interface
+interface Package {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  event_id: string;
+}
+
 const EventDetail = () => {
   const { eventId } = useParams();
   const [event, setEvent] = useState<Event | null>(null);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
 
@@ -100,6 +111,7 @@ const EventDetail = () => {
             };
             
             setEvent(supabaseEvent);
+            fetchPackages(data.id);
             setLoading(false);
             return;
           }
@@ -119,6 +131,23 @@ const EventDetail = () => {
 
     fetchEvent();
   }, [eventId]);
+
+  // Fetch sponsorship packages
+  const fetchPackages = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('sponsorship_packages')
+        .select('*')
+        .eq('event_id', id)
+        .order('price', { ascending: true });
+      
+      if (error) throw error;
+      
+      setPackages(data || []);
+    } catch (error) {
+      console.error('Error loading sponsorship packages:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -277,6 +306,38 @@ const EventDetail = () => {
                           </li>
                         ))}
                       </ul>
+
+                      {/* Sponsorship Packages Section */}
+                      {packages.length > 0 && (
+                        <div className="mt-8">
+                          <h3 className="font-semibold text-lg mb-4 text-white">Available Packages</h3>
+                          <div className="space-y-4">
+                            {packages.map((pkg) => (
+                              <div 
+                                key={pkg.id} 
+                                className="p-4 border border-primary/20 rounded-lg bg-primary/5"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-primary" />
+                                    <h4 className="font-medium text-white">{pkg.name}</h4>
+                                  </div>
+                                  <span className="text-primary font-bold">AED {pkg.price.toLocaleString()}</span>
+                                </div>
+                                <p className="text-sm text-gray-300">{pkg.description}</p>
+                                <ul className="mt-3 space-y-1">
+                                  <li className="flex items-center text-xs text-gray-400">
+                                    <Check className="h-3 w-3 mr-2 text-primary" /> All core sponsorship benefits
+                                  </li>
+                                  <li className="flex items-center text-xs text-gray-400">
+                                    <Check className="h-3 w-3 mr-2 text-primary" /> Package-specific perks
+                                  </li>
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mt-8">
                         <h3 className="font-semibold text-lg mb-3 text-white">Audience Demographics</h3>

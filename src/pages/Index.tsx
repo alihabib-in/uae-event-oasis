@@ -12,9 +12,53 @@ import { Button } from "@/components/ui/button";
 import { getFeaturedEvents } from "../data/eventData";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const featuredEvents = getFeaturedEvents();
+  const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApprovedEvents = async () => {
+      try {
+        // Get approved events from Supabase
+        const { data: supabaseEvents, error } = await supabase
+          .from("events")
+          .select("*")
+          .eq("status", "approved")
+          .eq("is_public", true)
+          .order("created_at", { ascending: false })
+          .limit(6);
+          
+        if (error) {
+          console.error("Error fetching events:", error);
+          // Fallback to static data
+          const staticEvents = getFeaturedEvents();
+          setFeaturedEvents(staticEvents);
+          setLoading(false);
+          return;
+        }
+        
+        if (supabaseEvents && supabaseEvents.length > 0) {
+          setFeaturedEvents(supabaseEvents);
+        } else {
+          // Fallback to static data if no approved events
+          const staticEvents = getFeaturedEvents();
+          setFeaturedEvents(staticEvents);
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        // Fallback to static data
+        const staticEvents = getFeaturedEvents();
+        setFeaturedEvents(staticEvents);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchApprovedEvents();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -39,32 +83,42 @@ const Index = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredEvents.map((event) => {
-                // Make sure the event exists before rendering it
-                if (!event) {
-                  console.error("Invalid featured event:", event);
-                  return null;
-                }
-                
-                return (
-                  <EventCard
-                    key={event.id}
-                    event={{
-                      id: event.id,
-                      title: event.title,
-                      date: event.date,
-                      location: event.location,
-                      category: event.category,
-                      min_bid: event.minBid,
-                      max_bid: event.maxBid,
-                      image: event.image,
-                      is_public: true
-                    }}
-                  />
-                );
-              })}
-            </div>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : featuredEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No featured events available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredEvents.map((event) => {
+                  // Make sure the event exists before rendering it
+                  if (!event) {
+                    console.error("Invalid featured event:", event);
+                    return null;
+                  }
+                  
+                  return (
+                    <EventCard
+                      key={event.id}
+                      event={{
+                        id: event.id,
+                        title: event.title,
+                        date: event.date,
+                        location: event.location,
+                        category: event.category,
+                        min_bid: event.minBid || event.min_bid,
+                        max_bid: event.maxBid || event.max_bid,
+                        image: event.image,
+                        is_public: true
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 

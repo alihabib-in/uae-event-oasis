@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>("https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot");
+  const [isHoveringBrands, setIsHoveringBrands] = useState(false);
   
   useEffect(() => {
     // Fetch hero video URL from admin settings
@@ -39,69 +40,73 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-8 text-balance leading-[1.1] text-white">
+            <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-8 text-balance leading-[1.1] text-foreground">
               Connecting UAE Events with <span className="text-gradient font-medium">Brand Sponsors</span>
             </h1>
-            <p className="text-xl text-white/80 mb-12 leading-relaxed max-w-2xl font-light">
+            <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl font-light">
               sponsorby is the premier marketplace providing brands high visibility across the largest UAE events.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
               <Button size="lg" className="text-lg px-8 py-7 rounded-xl" asChild>
                 <Link to="/events">Find Events <ArrowRight className="ml-2 h-5 w-5" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2 border-white/20" asChild>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2" asChild>
                 <Link to="/post-event">Post Your Event</Link>
               </Button>
             </div>
             
             <div className="flex flex-wrap gap-4 mt-8">
-              <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" className="hover:bg-muted/20" asChild>
                 <Link to="/for-brands">For Brands</Link>
               </Button>
-              <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" className="hover:bg-muted/20" asChild>
                 <Link to="/for-organizers">For Organizers</Link>
               </Button>
             </div>
             
-            <div className="mt-12">
-              <div className="overflow-x-auto pb-4 no-scrollbar">
-                <div className="flex space-x-4 animate-scroll-x">
+            <div className="mt-12 max-w-3xl">
+              <p className="text-sm text-muted-foreground mb-2">
+                <span className="font-semibold text-foreground">200+ </span> 
+                organizers trust our platform
+              </p>
+              <div 
+                className="overflow-hidden h-12"
+                onMouseEnter={() => setIsHoveringBrands(true)} 
+                onMouseLeave={() => setIsHoveringBrands(false)}
+              >
+                <div 
+                  className="flex space-x-8 transition-transform duration-5000"
+                  style={{ 
+                    transform: isHoveringBrands ? 'translateX(-33%)' : 'translateX(0)',
+                    transition: isHoveringBrands ? 'transform 15s linear' : 'none'
+                  }}
+                >
                   {brands.map((brand, index) => (
-                    <div 
-                      key={index} 
-                      className="h-16 w-16 flex-shrink-0 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all duration-300 p-2"
-                    >
+                    <div key={index} className="flex-shrink-0">
                       <img 
                         src={brand.logo} 
                         alt={brand.name} 
-                        className="max-h-10 max-w-10 object-contain" 
+                        className="h-8 max-w-32 object-contain opacity-80 hover:opacity-100 transition-opacity" 
                       />
                     </div>
                   ))}
-                  {/* Duplicate brands for continuous scrolling effect */}
-                  {brands.map((brand, index) => (
-                    <div 
-                      key={`duplicate-${index}`} 
-                      className="h-16 w-16 flex-shrink-0 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all duration-300 p-2"
-                    >
+                  {/* Duplicate first few brands for continuous scrolling effect */}
+                  {brands.slice(0, 4).map((brand, index) => (
+                    <div key={`duplicate-${index}`} className="flex-shrink-0">
                       <img 
                         src={brand.logo} 
                         alt={brand.name} 
-                        className="max-h-10 max-w-10 object-contain" 
+                        className="h-8 max-w-32 object-contain opacity-80 hover:opacity-100 transition-opacity" 
                       />
                     </div>
                   ))}
                 </div>
               </div>
-              <span className="block text-sm text-white/70 mt-2">
-                <span className="font-semibold text-white">200+ </span> 
-                organizers trust our platform
-              </span>
             </div>
           </div>
           
-          <div className="lg:col-span-2 relative animate-scale-in" data-component-line="77">
-            <div className="aspect-[4/3] bg-card/40 rounded-2xl glass-card overflow-hidden">
+          <div className="lg:col-span-2 relative animate-scale-in">
+            <div className="aspect-[4/3] rounded-2xl overflow-hidden">
               {/* Video content */}
               <video 
                 autoPlay 
@@ -125,20 +130,18 @@ const Hero = () => {
                   </div>
                 </div>
               </div>
-              {/* Animated overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 mix-blend-overlay animate-pulse"></div>
             </div>
-            <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-xl flex items-center space-x-4 w-64">
-              <div className="flex-shrink-0 h-12 w-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 w-64">
+              <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
                 5%
               </div>
               <div>
-                <p className="text-sm font-medium text-white">Commission Fee</p>
-                <p className="text-xs text-gray-400">Transparent pricing</p>
+                <p className="text-sm font-medium">Commission Fee</p>
+                <p className="text-xs text-muted-foreground">Transparent pricing</p>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 glass-card p-3 rounded-xl flex items-center">
-              <div className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-medium">
+            <div className="absolute -top-4 -right-4 bg-white p-3 rounded-xl shadow-md flex items-center">
+              <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
                 Live Bidding
               </div>
             </div>

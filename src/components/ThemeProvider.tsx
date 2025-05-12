@@ -3,52 +3,33 @@
 
 import * as React from "react";
 
-type Theme = "dark" | "light";
+type Theme = "light";  // Only light theme
 
 type ThemeContextType = {
   theme: Theme;
-  toggleTheme: () => void;
 };
 
 // Create the context with a default undefined value
 const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Use React.useState explicitly instead of destructured useState
-  const [theme, setTheme] = React.useState<Theme>(() => {
-    // Try to get theme from localStorage, but handle SSR case
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme") as Theme | null;
-      return savedTheme || "dark";
-    }
-    return "dark";
-  });
+  // Force light theme
+  const theme: Theme = "light";
 
   // Ensure this useEffect only runs in the browser
   React.useEffect(() => {
     // Apply theme class to document element
     const root = window.document.documentElement;
     
-    if (theme === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    } else {
-      root.classList.add("light");
-      root.classList.remove("dark");
-    }
+    // Set light theme
+    root.classList.remove("dark");
+    root.classList.add("light");
     
     // Save to localStorage
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = React.useCallback(() => {
-    setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
+    localStorage.setItem("theme", "light");
   }, []);
 
-  const value = React.useMemo(() => ({
-    theme,
-    toggleTheme
-  }), [theme, toggleTheme]);
+  const value = React.useMemo(() => ({ theme }), [theme]);
 
   return (
     <ThemeContext.Provider value={value}>

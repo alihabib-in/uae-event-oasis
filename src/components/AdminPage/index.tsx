@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import EventEditor from "@/components/EventEditor/EventEditor";
 import EventsTab from "./EventsTab";
 import BidsTab from "./BidsTab";
+import { PieChart, BarChart, Clock, Users } from "lucide-react";
 
 const AdminPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,6 +28,12 @@ const AdminPage = () => {
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("events");
   const [settings, setSettings] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    totalBids: 0,
+    pendingApprovals: 0,
+    totalUsers: 0
+  });
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,7 +41,44 @@ const AdminPage = () => {
   useEffect(() => {
     checkAdminStatus();
     fetchSettings();
+    fetchStats();
   }, [user]);
+
+  const fetchStats = async () => {
+    if (!user) return;
+    
+    try {
+      // Get events count
+      const { count: eventsCount } = await supabase
+        .from("events")
+        .select("*", { count: 'exact', head: true });
+      
+      // Get bids count
+      const { count: bidsCount } = await supabase
+        .from("bids")
+        .select("*", { count: 'exact', head: true });
+      
+      // Get pending approvals
+      const { count: pendingCount } = await supabase
+        .from("events")
+        .select("*", { count: 'exact', head: true })
+        .eq("status", "pending");
+      
+      // Get users count (simplified - in a real app you might want to use auth admin APIs)
+      const { count: usersCount } = await supabase
+        .from("profiles")
+        .select("*", { count: 'exact', head: true });
+      
+      setStats({
+        totalEvents: eventsCount || 0,
+        totalBids: bidsCount || 0,
+        pendingApprovals: pendingCount || 0,
+        totalUsers: usersCount || 0
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -89,12 +133,20 @@ const AdminPage = () => {
 
   const handleEventUpdated = () => {
     toast.success("Event updated successfully");
+    // Refresh the events list
+    const eventsTab = document.getElementById('events-tab-trigger');
+    if (eventsTab) {
+      eventsTab.click();
+    }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-12 w-12 rounded-full bg-primary/30 mb-4"></div>
+          <p className="text-muted-foreground">Loading admin dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -131,17 +183,75 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <div className="flex items-center justify-between mb-8 border-b pb-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Manage events, bids, and platform settings</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+            <span className="text-sm text-muted-foreground">Logged in as {user?.email}</span>
+          </div>
         </div>
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Events</p>
+                <p className="text-3xl font-bold">{stats.totalEvents}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <BarChart className="h-6 w-6 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Bids</p>
+                <p className="text-3xl font-bold">{stats.totalBids}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-sky-100 flex items-center justify-center">
+                <PieChart className="h-6 w-6 text-sky-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Pending Approval</p>
+                <p className="text-3xl font-bold">{stats.pendingApprovals}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-amber-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Users</p>
+                <p className="text-3xl font-bold">{stats.totalUsers}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-violet-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-violet-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="bg-white rounded-lg shadow-sm p-6">
           <TabsList className="mb-8 grid grid-cols-3 max-w-md">
-            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger id="events-tab-trigger" value="events">Events</TabsTrigger>
             <TabsTrigger value="bids">Bids</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>

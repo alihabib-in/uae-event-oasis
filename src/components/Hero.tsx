@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
-  const [heroVideoUrl, setHeroVideoUrl] = useState<string>("https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot");
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>("https://videos.pexels.com/video-files/10839348/10839348-uhd_2732_1440_30fps.mp4");
   const [isHoveringBrands, setIsHoveringBrands] = useState(false);
   
   useEffect(() => {
@@ -23,7 +23,7 @@ const Hero = () => {
           return;
         }
         
-        // The column now exists in the database after our migration
+        // If there's a valid URL in the database, use it
         if (data && data.hero_video_url) {
           setHeroVideoUrl(data.hero_video_url);
         }
@@ -40,17 +40,17 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-8 text-balance leading-[1.1] text-foreground">
-              Connecting UAE Events with <span className="text-gradient font-medium">Brand Sponsors</span>
+            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-balance leading-[1.1] text-foreground">
+              Connecting UAE Events with <span className="text-gradient font-bold">Brand Sponsors</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl font-light">
+            <p className="text-xl text-gray-700 mb-12 leading-relaxed max-w-2xl font-medium">
               sponsorby is the premier marketplace providing brands high visibility across the largest UAE events.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
-              <Button size="lg" className="text-lg px-8 py-7 rounded-xl" asChild>
+              <Button size="lg" className="text-lg px-8 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all" asChild>
                 <Link to="/events">Find Events <ArrowRight className="ml-2 h-5 w-5" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2" asChild>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2 shadow-sm hover:shadow-md transition-all" asChild>
                 <Link to="/post-event">Post Your Event</Link>
               </Button>
             </div>
@@ -65,7 +65,7 @@ const Hero = () => {
             </div>
             
             <div className="mt-12 max-w-3xl">
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-sm text-gray-700 mb-2">
                 <span className="font-semibold text-foreground">200+ </span> 
                 organizers trust our platform
               </p>
@@ -106,7 +106,7 @@ const Hero = () => {
           </div>
           
           <div className="lg:col-span-2 relative animate-scale-in">
-            <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+            <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
               {/* Video content */}
               <video 
                 autoPlay 
@@ -114,8 +114,8 @@ const Hero = () => {
                 loop 
                 playsInline
                 className="w-full h-full object-cover"
+                src={heroVideoUrl}
               >
-                <source src={heroVideoUrl} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               

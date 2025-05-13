@@ -33,27 +33,32 @@
   
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading font-semibold tracking-tight;
+    letter-spacing: -0.025em;
   }
   
   .section-title {
     @apply text-3xl md:text-4xl font-bold tracking-tight;
+    letter-spacing: -0.025em;
   }
   
   .section-subtitle {
-    @apply text-lg text-muted-foreground mt-2;
+    @apply text-lg text-gray-700 mt-2;
   }
   
   /* Hero section gradient backgrounds */
   .hero-gradient {
-    @apply bg-gradient-to-b from-white to-muted/30;
+    @apply bg-gradient-to-b from-white to-slate-50;
   }
   
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm shadow-md;
+    @apply bg-white/90 backdrop-blur-md shadow-md;
   }
 
   /* Text gradient for hero */
@@ -116,4 +121,46 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Logo animation */
+@keyframes logo-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.logo-animate {
+  animation: logo-pulse 3s infinite ease-in-out;
+}
+
+/* Custom shadow effects */
+.shadow-soft {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.shadow-hover:hover {
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Button enhancements */
+.btn-gradient {
+  background: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #4ade80) 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(90deg, var(--primary) 10%, color-mix(in srgb, var(--primary) 80%, #4ade80) 100%);
+  box-shadow: 0 10px 15px -3px rgba(var(--primary), 0.3);
 }

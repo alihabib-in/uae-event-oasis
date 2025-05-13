@@ -80,6 +80,16 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
     }
   };
 
+  const handleEditEvent = (event: any) => {
+    console.log("Edit event clicked in EventsTab:", event);
+    // Ensure we're passing the full event object to the parent component
+    if (onEditEvent && typeof onEditEvent === 'function') {
+      onEditEvent(event);
+    } else {
+      console.error("onEditEvent is not a function or not provided");
+    }
+  };
+
   return (
     <>
       <Card>
@@ -151,7 +161,7 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onEditEvent(event)}
+                          onClick={() => handleEditEvent(event)}
                         >
                           Edit
                         </Button>

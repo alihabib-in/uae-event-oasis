@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import EventEditor from "@/components/EventEditor/EventEditor";
 import EventsTab from "./EventsTab";
 import BidsTab from "./BidsTab";
-import { Dialog } from "@/components/ui/dialog";
 
 const AdminPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,13 +26,33 @@ const AdminPage = () => {
   const [eventToEdit, setEventToEdit] = useState<any>(null);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("events");
+  const [settings, setSettings] = useState<any>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAdminStatus();
+    fetchSettings();
   }, [user]);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .single();
+        
+      if (error) {
+        console.error("Error fetching settings:", error);
+        return;
+      }
+      
+      setSettings(data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   const checkAdminStatus = async () => {
     if (!user) {
@@ -63,6 +82,7 @@ const AdminPage = () => {
   };
 
   const handleEditEvent = (event: any) => {
+    console.log("Edit event clicked:", event);
     setEventToEdit(event);
     setIsEditEventOpen(true);
   };
@@ -135,7 +155,10 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="settings">
-            <AdminSettings />
+            <AdminSettings 
+              settings={settings}
+              onSettingsSaved={fetchSettings}
+            />
           </TabsContent>
         </Tabs>
       </main>

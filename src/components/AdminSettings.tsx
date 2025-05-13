@@ -24,7 +24,7 @@ interface AdminSettingsProps {
 const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSettingsProps) => {
   const [settings, setSettings] = useState(initialSettings);
   const [requireOtp, setRequireOtp] = useState(initialSettings?.require_otp_verification ?? true);
-  const [heroVideoUrl, setHeroVideoUrl] = useState(initialSettings?.hero_video_url ?? "https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot");
+  const [heroVideoUrl, setHeroVideoUrl] = useState(initialSettings?.hero_video_url ?? "");
   const [notificationEmails, setNotificationEmails] = useState<string[]>(initialSettings?.notification_emails || []);
   const [newEmail, setNewEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
     if (initialSettings) {
       setSettings(initialSettings);
       setRequireOtp(initialSettings.require_otp_verification !== undefined ? initialSettings.require_otp_verification : true);
-      setHeroVideoUrl(initialSettings.hero_video_url ?? "https://ai.invideo.io/workspace/b00f9134-fc98-4d60-a00a-ad1575e0b963/v30-copilot");
+      setHeroVideoUrl(initialSettings.hero_video_url ?? "");
       setNotificationEmails(initialSettings.notification_emails || []);
     }
   }, [initialSettings]);
@@ -89,8 +89,8 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">System Settings</h2>
-          <p className="text-muted-foreground">Manage platform-wide settings and configurations</p>
+          <h2 className="text-3xl font-bold text-gray-800">System Settings</h2>
+          <p className="text-slate-600">Manage platform-wide settings and configurations</p>
         </div>
       </div>
       
@@ -113,16 +113,16 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
         <TabsContent value="general" className="space-y-4 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-800">Security Settings</CardTitle>
+              <CardDescription className="text-slate-600">
                 Configure security settings for user accounts and platform access
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">OTP Phone Verification</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-gray-800">OTP Phone Verification</p>
+                  <p className="text-sm text-slate-600">
                     When enabled, users must verify their phone number when posting events or submitting bids
                   </p>
                 </div>
@@ -138,8 +138,8 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
         <TabsContent value="appearance" className="space-y-4 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Homepage Appearance</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-800">Homepage Appearance</CardTitle>
+              <CardDescription className="text-slate-600">
                 Configure visual elements of the landing page
               </CardDescription>
             </CardHeader>
@@ -147,7 +147,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Image className="h-4 w-4 text-primary" />
-                  <Label>Hero Section Video URL</Label>
+                  <Label className="text-gray-800">Hero Section Video URL</Label>
                 </div>
                 <Input
                   value={heroVideoUrl}
@@ -155,7 +155,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
                   placeholder="Enter video URL for hero section"
                   className="w-full"
                 />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600">
                   Enter the URL for the video to be displayed in the homepage hero section
                 </p>
               </div>
@@ -163,21 +163,19 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
               <div className="border rounded-md p-4 mt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Image className="h-4 w-4 text-primary" />
-                  <p className="font-medium">Video Preview</p>
+                  <p className="font-medium text-gray-800">Video Preview</p>
                 </div>
                 <div className="aspect-video rounded-md overflow-hidden bg-muted relative">
                   {heroVideoUrl ? (
-                    <video 
+                    <iframe 
                       src={heroVideoUrl} 
-                      controls 
                       className="w-full h-full object-cover"
-                      poster="/placeholder.svg"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="text-muted-foreground">No video URL provided</p>
+                      <p className="text-slate-600">No video URL provided</p>
                     </div>
                   )}
                 </div>
@@ -189,8 +187,8 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
         <TabsContent value="notifications" className="space-y-4 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Admin Notification Settings</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-800">Admin Notification Settings</CardTitle>
+              <CardDescription className="text-slate-600">
                 Configure email addresses for system notifications
               </CardDescription>
             </CardHeader>
@@ -206,14 +204,14 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
               </div>
               
               <div className="mt-4">
-                <Label className="text-sm font-medium">Admin Emails</Label>
+                <Label className="text-sm font-medium text-gray-800">Admin Emails</Label>
                 {notificationEmails.length === 0 ? (
-                  <p className="text-sm text-muted-foreground mt-2">No admin emails configured</p>
+                  <p className="text-sm text-slate-600 mt-2">No admin emails configured</p>
                 ) : (
                   <div className="mt-2 space-y-2">
                     {notificationEmails.map((email) => (
                       <div key={email} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                        <span>{email}</span>
+                        <span className="text-gray-800">{email}</span>
                         <Button 
                           variant="ghost" 
                           size="sm"

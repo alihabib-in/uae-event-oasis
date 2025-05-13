@@ -64,16 +64,25 @@ const AdminPage = () => {
         .select("*", { count: 'exact', head: true })
         .eq("status", "pending");
       
-      // Get users count (simplified - in a real app you might want to use auth admin APIs)
-      const { count: usersCount } = await supabase
-        .from("profiles")
-        .select("*", { count: 'exact', head: true });
+      // Get users count - we don't have a profiles table, so we'll estimate based on events with unique user_ids
+      const { data: uniqueUsers } = await supabase
+        .from("events")
+        .select("user_id")
+        .not("user_id", "is", null);
+      
+      // Count unique user_ids (this is a simplified approach)
+      const uniqueUserIds = new Set();
+      if (uniqueUsers) {
+        uniqueUsers.forEach(item => {
+          if (item.user_id) uniqueUserIds.add(item.user_id);
+        });
+      }
       
       setStats({
         totalEvents: eventsCount || 0,
         totalBids: bidsCount || 0,
         pendingApprovals: pendingCount || 0,
-        totalUsers: usersCount || 0
+        totalUsers: uniqueUserIds.size || 0
       });
     } catch (error) {
       console.error("Error fetching stats:", error);

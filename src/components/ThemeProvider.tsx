@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -7,6 +6,7 @@ type Theme = "light";  // Only light theme
 
 type ThemeContextType = {
   theme: Theme;
+  toggleTheme: () => void; // Added this function to the type
 };
 
 // Create the context with a default undefined value
@@ -15,6 +15,12 @@ const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Force light theme
   const theme: Theme = "light";
+
+  // Add toggleTheme function that doesn't actually toggle (just keeps light theme)
+  const toggleTheme = () => {
+    // This is just a stub function as we're enforcing light mode
+    console.log("Theme toggle attempted, but light theme is enforced");
+  };
 
   // Ensure this useEffect only runs in the browser
   React.useEffect(() => {
@@ -29,7 +35,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("theme", "light");
   }, []);
 
-  const value = React.useMemo(() => ({ theme }), [theme]);
+  const value = React.useMemo(() => ({ theme, toggleTheme }), [theme]);
 
   return (
     <ThemeContext.Provider value={value}>

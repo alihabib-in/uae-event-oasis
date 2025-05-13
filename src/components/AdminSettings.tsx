@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { settings, layout, image, users } from "lucide-react";
+import { Settings, Layout, Image, Users } from "lucide-react";
 
 interface AdminSettingsProps {
   settings?: {
@@ -97,15 +97,15 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 w-[400px]">
           <TabsTrigger value="general" className="flex items-center gap-2">
-            <settings className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
             General
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <layout className="h-4 w-4" />
+            <Layout className="h-4 w-4" />
             Appearance
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <users className="h-4 w-4" />
+            <Users className="h-4 w-4" />
             Notifications
           </TabsTrigger>
         </TabsList>
@@ -146,7 +146,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
             <CardContent className="space-y-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <image className="h-4 w-4 text-primary" />
+                  <Image className="h-4 w-4 text-primary" />
                   <Label>Hero Section Video URL</Label>
                 </div>
                 <Input
@@ -162,7 +162,7 @@ const AdminSettings = ({ settings: initialSettings, onSettingsSaved }: AdminSett
               
               <div className="border rounded-md p-4 mt-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <image className="h-4 w-4 text-primary" />
+                  <Image className="h-4 w-4 text-primary" />
                   <p className="font-medium">Video Preview</p>
                 </div>
                 <div className="aspect-video rounded-md overflow-hidden bg-muted relative">

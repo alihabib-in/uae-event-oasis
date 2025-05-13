@@ -285,12 +285,14 @@ const AdminPage = () => {
       <Footer />
 
       {/* Event Editor Dialog */}
-      <EventEditor 
-        isOpen={isEditEventOpen}
-        onClose={() => setIsEditEventOpen(false)}
-        event={eventToEdit}
-        onEventUpdated={handleEventUpdated}
-      />
+      {isEditEventOpen && (
+        <EventEditor 
+          isOpen={isEditEventOpen}
+          onClose={() => setIsEditEventOpen(false)}
+          event={eventToEdit}
+          onEventUpdated={handleEventUpdated}
+        />
+      )}
     </div>
   );
 };

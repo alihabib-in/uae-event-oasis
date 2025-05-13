@@ -43,8 +43,6 @@ const EventEditor = ({ isOpen, onClose, event, onEventUpdated }: EventEditorProp
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">

@@ -6,8 +6,6 @@ import HowItWorks from "../components/HowItWorks";
 import CategorySection from "../components/CategorySection";
 import EventCard from "../components/EventCard";
 import TestimonialSection from "../components/TestimonialSection";
-import CallToAction from "../components/CallToAction";
-import StatsSection from "../components/StatsSection";
 import { Button } from "@/components/ui/button";
 import { getFeaturedEvents } from "../data/eventData";
 import { Link } from "react-router-dom";
@@ -66,7 +64,7 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         
-        {/* Featured Events Section */}
+        {/* Combined Featured Events and Categories Section */}
         <section id="featured-events" className="py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-16">
@@ -119,24 +117,16 @@ const Index = () => {
                 })}
               </div>
             )}
+            
+            {/* Category Section embedded directly below events */}
+            <div className="mt-20">
+              <CategorySection />
+            </div>
           </div>
         </section>
 
-        <StatsSection />
         <HowItWorks />
-        <CategorySection />
         <TestimonialSection />
-        
-        {/* Call to Action with more prominent styling */}
-        <section className="py-24 bg-muted/10 relative overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="glass-card rounded-2xl overflow-hidden">
-              <CallToAction type="brand" />
-            </div>
-          </div>
-          <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-primary/10 rounded-full"></div>
-          <div className="absolute -top-20 -left-20 w-72 h-72 bg-secondary/10 rounded-full"></div>
-        </section>
       </main>
       <Footer />
     </div>

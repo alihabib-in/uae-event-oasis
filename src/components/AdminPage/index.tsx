@@ -54,7 +54,7 @@ const AdminPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-3">
             <div className="flex items-center space-x-6">
-              <Logo width={140} />
+              <Logo />
               <nav className="hidden md:flex space-x-1">
                 <Button 
                   variant="ghost" 

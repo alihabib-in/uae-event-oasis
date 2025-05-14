@@ -104,6 +104,48 @@ export type Database = {
           },
         ]
       }
+      event_spaces: {
+        Row: {
+          amenities: string[]
+          available: boolean
+          base_price: number
+          capacity: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[]
+          available?: boolean
+          base_price: number
+          capacity: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[]
+          available?: boolean
+          base_price?: number
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           attendees: number
@@ -179,6 +221,63 @@ export type Database = {
           user_id?: string | null
           venue?: string
           verification_code?: string | null
+        }
+        Relationships: []
+      }
+      space_rental_requests: {
+        Row: {
+          additional_requirements: string | null
+          admin_response: string | null
+          capacity: number
+          company_name: string | null
+          created_at: string
+          email: string
+          end_date: string
+          event_type: string
+          id: string
+          phone: string
+          preferred_date: string
+          requester_name: string
+          space_type: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          additional_requirements?: string | null
+          admin_response?: string | null
+          capacity: number
+          company_name?: string | null
+          created_at?: string
+          email: string
+          end_date: string
+          event_type: string
+          id?: string
+          phone: string
+          preferred_date: string
+          requester_name: string
+          space_type: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          additional_requirements?: string | null
+          admin_response?: string | null
+          capacity?: number
+          company_name?: string | null
+          created_at?: string
+          email?: string
+          end_date?: string
+          event_type?: string
+          id?: string
+          phone?: string
+          preferred_date?: string
+          requester_name?: string
+          space_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

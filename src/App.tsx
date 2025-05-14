@@ -1,73 +1,60 @@
 
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import EventsPage from "./pages/EventsPage";
-import EventDetail from "./pages/EventDetail";
-import { ThemeProvider } from "./components/ThemeProvider";
-import AuthPage from "./pages/AuthPage";
-import LoginPage from "./pages/LoginPage";
-import AdminPage from "./pages/AdminPage";
-import PostEventPage from "./pages/PostEventPage";
-import ForBrandsPage from "./pages/ForBrandsPage";
-import ForOrganizersPage from "./pages/ForOrganizersPage";
-import ChatbotProvider from "./components/chatbot/ChatbotProvider";
-import { AuthProvider } from "./components/AuthProvider";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AccountPage from "./pages/AccountPage";
-import SubmitBidPage from "./pages/SubmitBidPage";
-import ContactPage from "./pages/ContactPage";
-import GoogleAnalytics from "./components/GoogleAnalytics";
 
-const queryClient = new QueryClient();
+import IndexPage from "@/pages/Index";
+import NotFound from "@/pages/NotFound";
+import EventsPage from "@/pages/EventsPage";
+import EventDetail from "@/pages/EventDetail";
+import SubmitBidPage from "@/pages/SubmitBidPage";
+import ForBrandsPage from "@/pages/ForBrandsPage";
+import ForOrganizersPage from "@/pages/ForOrganizersPage";
+import ContactPage from "@/pages/ContactPage";
+import PostEventPage from "@/pages/PostEventPage";
+import AuthPage from "@/pages/AuthPage";
+import LoginPage from "@/pages/LoginPage";
+import AdminPage from "@/pages/AdminPage";
+import AccountPage from "@/pages/AccountPage";
+import RentSpacePage from "@/pages/RentSpacePage";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+import "./App.css";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ChatbotProvider } from "@/components/chatbot/ChatbotProvider";
+
+function App() {
+  return (
     <ThemeProvider>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <ChatbotProvider>
-            <BrowserRouter>
-              <GoogleAnalytics />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/events/:eventId" element={<EventDetail />} />
-                <Route path="/events/:eventId/bid" element={<SubmitBidPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/account" element={
-                  <ProtectedRoute>
-                    <AccountPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/post-event" element={
-                  <ProtectedRoute>
-                    <PostEventPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-                <Route path="/for-brands" element={<ForBrandsPage />} />
-                <Route path="/for-organizers" element={<ForOrganizersPage />} />
-              </Routes>
-            </BrowserRouter>
-          </ChatbotProvider>
-        </TooltipProvider>
+        <ChatbotProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<IndexPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/submit-bid/:id" element={<SubmitBidPage />} />
+              <Route path="/for-brands" element={<ForBrandsPage />} />
+              <Route path="/for-organizers" element={<ForOrganizersPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/post-event" element={<PostEventPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/rent-space" element={<RentSpacePage />} />
+              
+              {/* Protected routes */}
+              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+              
+              {/* Not found route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </BrowserRouter>
+        </ChatbotProvider>
       </AuthProvider>
     </ThemeProvider>
-  </QueryClientProvider>
-);
+  );
+}
 
 export default App;

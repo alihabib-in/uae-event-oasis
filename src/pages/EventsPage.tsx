@@ -1,15 +1,17 @@
+
 // Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import EventCard from "../components/EventCard";
+import EventsAIChatbot from "../components/EventsAIChatbot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Calendar, Filter, Search, Tag } from "lucide-react";
+import { Calendar, Filter, Search, Tag, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Define the event type to fix typing issues
@@ -41,6 +43,7 @@ const EventsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const navigate = useNavigate();
 
@@ -176,7 +179,11 @@ const EventsPage = () => {
                 Discover the most exciting events across the UAE
               </p>
             </div>
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 flex gap-3">
+              <Button onClick={() => navigate("/rent-space")} variant="outline" className="flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                Rent Space
+              </Button>
               <Button onClick={() => navigate("/post-event")} className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Post Your Event
@@ -190,7 +197,7 @@ const EventsPage = () => {
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search events..."
-                  className="pl-9"
+                  className="pl-9 dark-input"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -291,6 +298,20 @@ const EventsPage = () => {
       </main>
       
       <Footer />
+      
+      {/* AI Chatbot */}
+      <Button 
+        className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg z-40 p-0"
+        onClick={() => setIsChatbotOpen(prev => !prev)}
+      >
+        {isChatbotOpen ? (
+          <X className="h-6 w-6" />
+        ) : (
+          <MessageSquare className="h-6 w-6" />
+        )}
+      </Button>
+      
+      <EventsAIChatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
     </div>
   );
 };

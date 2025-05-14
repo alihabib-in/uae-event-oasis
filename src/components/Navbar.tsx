@@ -1,193 +1,182 @@
-
+// Modify only the navigation items to include the Rent Space link
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogIn } from "lucide-react";
-import Logo from "@/components/Logo";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Menu, X, ChevronDown, Building } from "lucide-react";
+import Logo from "./Logo";
 import { navigationItems } from "@/data/navigationItems";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile"; // Fixed import name
-import { useAuth } from "@/components/AuthProvider";
-import { ModeToggle } from "@/components/ModeToggle";
-
-const NavbarItem = ({
-  href,
-  label,
-  icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  icon?: React.ReactNode;
-  active: boolean;
-}) => {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        "relative px-4 py-2 rounded-md text-sm font-medium transition-colors",
-        active
-          ? "text-primary bg-primary/10 hover:bg-primary/20"
-          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-      )}
-    >
-      <div className="flex items-center gap-2">
-        {icon}
-        {label}
-      </div>
-      {active && (
-        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-      )}
-    </Link>
-  );
-};
+import { ModeToggle } from "./ModeToggle";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const location = useLocation();
-  const isMobile = useIsMobile(); // Fixed hook name
-  const [scrolled, setScrolled] = useState(false);
-  const { user, signOut } = useAuth();
+  const pathname = location.pathname;
 
-  const isActive = (path: string) => {
-    if (path === "/" && location.pathname !== "/") {
-      return false;
-    }
-    return location.pathname.startsWith(path);
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
 
+  // Add Rent Space to navigation items
+  const extendedNavItems = [...navigationItems, { name: "Rent Space", path: "/rent-space" }];
+
+  
   return (
-    <nav
-      className={cn(
-        "sticky top-0 z-40 w-full transition-all duration-200",
-        scrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-background"
-      )}
-    >
-      <div className="container mx-auto flex items-center justify-between h-16 px-4 sm:px-6">
-        {/* Logo */}
-        <Link to="/" className="flex-shrink-0">
-          <Logo /* Removed className that doesn't exist in the Props interface */ />
-        </Link>
-
-        {/* Center Nav Items - Desktop */}
-        <div className="hidden md:flex items-center justify-center flex-grow">
-          <div className="flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <NavbarItem
-                key={item.path}
-                href={item.path}
-                label={item.name}
-                active={isActive(item.path)}
-              />
-            ))}
-          </div>
+    <header className="sticky top-0 z-40 w-full border-b border-slate-700/50 bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-slate-900/80">
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <Logo />
+          </Link>
         </div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
-          <ModeToggle />
-          
-          {/* User Menu or Auth Buttons */}
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-1 bg-background">
-                <Link to="/account">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>My Account</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => signOut()}>
-                  <LogIn className="mr-2 h-4 w-4 rotate-180" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="hidden sm:flex gap-2">
-              <Button variant="ghost" asChild>
-                <Link to="/auth?mode=login">Login</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/auth?mode=signup">Sign Up</Link>
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Navigation Menu */}
-      {isMobile && mobileMenuOpen && (
-        <div className="md:hidden bg-background border-t">
-          <div className="px-2 pt-2 pb-4 space-y-1 sm:px-3">
-            {navigationItems.map((item) => (
+        {/* Desktop navigation */}
+        <div className="hidden md:flex md:flex-1 md:items-center md:justify-between">
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            {extendedNavItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={cn(
-                  "block px-3 py-2 rounded-md text-base font-medium",
-                  isActive(item.path)
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
+                className={`transition-colors hover:text-primary ${
+                  pathname === item.path ? "text-primary" : "text-slate-200"
+                }`}
               >
-                {item.name}
+                {item.name === "Rent Space" ? (
+                  <span className="flex items-center">
+                    <Building className="mr-1 h-4 w-4" /> {item.name}
+                  </span>
+                ) : (
+                  item.name
+                )}
               </Link>
             ))}
-            {!user && (
-              <div className="pt-2 flex flex-col gap-2">
-                <Button asChild className="w-full">
-                  <Link to="/auth?mode=login" onClick={() => setMobileMenuOpen(false)}>
-                    Login
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
-                    Sign Up
-                  </Link>
-                </Button>
-              </div>
+          </nav>
+          <div className="flex items-center space-x-2">
+            {!session ? (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/account">
+                  <Button variant="outline" size="sm">
+                    My Account
+                  </Button>
+                </Link>
+              </>
             )}
+            <ModeToggle />
           </div>
         </div>
-      )}
-    </nav>
+
+        {/* Mobile menu button */}
+        <div className="flex md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMobileMenu}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" aria-hidden="true" />
+            ) : (
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            )}
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </div>
+
+        {/* Mobile navigation */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm md:hidden">
+            <div className="fixed inset-x-0 top-0 z-50 min-h-screen w-full bg-slate-900 px-6 py-6">
+              <div className="flex items-center justify-between">
+                <Link to="/" className="flex items-center space-x-2">
+                  <Logo />
+                </Link>
+                <button
+                  type="button"
+                  className="text-slate-400 hover:text-slate-200"
+                  onClick={toggleMobileMenu}
+                >
+                  <X className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="mt-8 flow-root">
+                <div className="-my-6 divide-y divide-slate-800">
+                  <div className="space-y-2 py-6">
+                    {extendedNavItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`-mx-3 block rounded-lg px-3 py-2 text-base font-medium transition-colors hover:bg-slate-800 ${
+                          pathname === item.path ? "text-primary" : "text-slate-200"
+                        }`}
+                        onClick={toggleMobileMenu}
+                      >
+                        {item.name === "Rent Space" ? (
+                          <span className="flex items-center">
+                            <Building className="mr-2 h-4 w-4" /> {item.name}
+                          </span>
+                        ) : (
+                          item.name
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="py-6">
+                    {!session ? (
+                      <>
+                        <Link
+                          to="/login"
+                          className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-medium text-slate-200 hover:bg-slate-800"
+                          onClick={toggleMobileMenu}
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          to="/auth"
+                          className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-medium text-slate-200 hover:bg-slate-800"
+                          onClick={toggleMobileMenu}
+                        >
+                          Get Started
+                        </Link>
+                      </>
+                    ) : (
+                      <Link
+                        to="/account"
+                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-medium text-slate-200 hover:bg-slate-800"
+                        onClick={toggleMobileMenu}
+                      >
+                        My Account
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
   );
 };
 

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import EventsTab from "./EventsTab";
 import BidsTab from "./BidsTab";
+import SpacesTab from "./SpacesTab";
+import SpaceRequestsTab from "./SpaceRequestsTab";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Settings, Home } from "lucide-react";
+import { LogOut, Settings, Home, Building, CalendarRange, MessageSquare } from "lucide-react";
 import Logo from "@/components/Logo";
 import EventEditor from "@/components/EventEditor/EventEditor";
 
@@ -50,7 +52,7 @@ const AdminPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Admin Header */}
-      <header className="border-b bg-white shadow-sm">
+      <header className="border-b bg-slate-900 shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-3">
             <div className="flex items-center space-x-6">
@@ -69,6 +71,7 @@ const AdminPage: React.FC = () => {
                   onClick={() => setActiveTab("events")}
                   className="text-sm font-medium"
                 >
+                  <CalendarRange className="h-4 w-4 mr-1" />
                   Events
                 </Button>
                 <Button 
@@ -76,7 +79,23 @@ const AdminPage: React.FC = () => {
                   onClick={() => setActiveTab("bids")}
                   className="text-sm font-medium"
                 >
+                  <MessageSquare className="h-4 w-4 mr-1" />
                   Bids
+                </Button>
+                <Button 
+                  variant={activeTab === "spaces" ? "secondary" : "ghost"} 
+                  onClick={() => setActiveTab("spaces")}
+                  className="text-sm font-medium"
+                >
+                  <Building className="h-4 w-4 mr-1" />
+                  Spaces
+                </Button>
+                <Button 
+                  variant={activeTab === "space_requests" ? "secondary" : "ghost"} 
+                  onClick={() => setActiveTab("space_requests")}
+                  className="text-sm font-medium"
+                >
+                  Building Requests
                 </Button>
                 <Button 
                   variant={activeTab === "settings" ? "secondary" : "ghost"} 
@@ -91,7 +110,7 @@ const AdminPage: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               {userEmail && (
-                <span className="text-sm text-gray-600 hidden md:inline-block">
+                <span className="text-sm text-slate-400 hidden md:inline-block">
                   {userEmail}
                 </span>
               )}
@@ -117,6 +136,8 @@ const AdminPage: React.FC = () => {
               <TabsList className="w-full">
                 <TabsTrigger value="events">Events</TabsTrigger>
                 <TabsTrigger value="bids">Bids</TabsTrigger>
+                <TabsTrigger value="spaces">Spaces</TabsTrigger>
+                <TabsTrigger value="space_requests">Requests</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -126,10 +147,12 @@ const AdminPage: React.FC = () => {
         <div>
           {activeTab === "events" && <EventsTab onEditEvent={handleEditEvent} />}
           {activeTab === "bids" && <BidsTab />}
+          {activeTab === "spaces" && <SpacesTab />}
+          {activeTab === "space_requests" && <SpaceRequestsTab />}
           {activeTab === "settings" && (
-            <div className="bg-white rounded-lg shadow-sm p-6 border">
+            <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
               <h3 className="text-xl font-semibold mb-4">Admin Settings</h3>
-              <p className="text-gray-600">Settings functionality will be implemented soon.</p>
+              <p className="text-slate-400">Settings functionality will be implemented soon.</p>
             </div>
           )}
         </div>

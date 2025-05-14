@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Calendar, Filter, Search, Tag, MessageSquare } from "lucide-react";
+import { Calendar, Filter, Search, Tag, MessageSquare, Building, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Define the event type to fix typing issues

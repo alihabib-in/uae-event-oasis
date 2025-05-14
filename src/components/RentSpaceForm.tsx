@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Building, Calendar, Info, Users, MapPin, Phone, Mail, CalendarCheck } from "lucide-react";
+import { CalendarIcon, Building, Phone, Mail, CalendarCheck, Users, MapPin, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -329,7 +328,7 @@ const RentSpaceForm: React.FC = () => {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-400" />
+                      <CalendarIcon className="h-4 w-4 text-blue-400" />
                       Preferred Start Date
                     </FormLabel>
                     <Popover>
@@ -357,7 +356,7 @@ const RentSpaceForm: React.FC = () => {
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date()}
                           initialFocus
-                          className="bg-slate-800"
+                          className="bg-slate-800 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -403,7 +402,7 @@ const RentSpaceForm: React.FC = () => {
                             return preferredDate ? date < preferredDate : date < new Date();
                           }}
                           initialFocus
-                          className="bg-slate-800"
+                          className="bg-slate-800 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>

@@ -21,7 +21,7 @@ import "./App.css";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
-import { ChatbotProvider } from "@/components/chatbot/ChatbotProvider";
+import ChatbotProvider from "@/components/chatbot/ChatbotProvider";
 
 function App() {
   return (

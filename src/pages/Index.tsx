@@ -1,21 +1,40 @@
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import Hero from "../components/Hero";
-import HowItWorks from "../components/HowItWorks";
-import CategorySection from "../components/CategorySection";
-import EventCard from "../components/EventCard";
-import TestimonialSection from "../components/TestimonialSection";
-import { Button } from "@/components/ui/button";
-import { getFeaturedEvents } from "../data/eventData";
-import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { ChevronRight, Filter } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Hero from "@/components/Hero";
+import HowItWorks from "@/components/HowItWorks";
+import EventCard from "@/components/EventCard";
+import TestimonialSection from "@/components/TestimonialSection";
+import { Button } from "@/components/ui/button";
+import { getFeaturedEvents } from "@/data/eventData";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+
+// Event categories for filter
+const categories = [
+  "Technology",
+  "Sports",
+  "Arts & Culture",
+  "Business",
+  "Education",
+  "Entertainment",
+  "Food & Drink"
+];
 
 const Index = () => {
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchApprovedEvents = async () => {
@@ -27,29 +46,33 @@ const Index = () => {
           .eq("status", "approved")
           .eq("is_public", true)
           .order("created_at", { ascending: false })
-          .limit(6);
+          .limit(9);
           
         if (error) {
           console.error("Error fetching events:", error);
           // Fallback to static data
           const staticEvents = getFeaturedEvents();
           setFeaturedEvents(staticEvents);
+          setFilteredEvents(staticEvents);
           setLoading(false);
           return;
         }
         
         if (supabaseEvents && supabaseEvents.length > 0) {
           setFeaturedEvents(supabaseEvents);
+          setFilteredEvents(supabaseEvents);
         } else {
           // Fallback to static data if no approved events
           const staticEvents = getFeaturedEvents();
           setFeaturedEvents(staticEvents);
+          setFilteredEvents(staticEvents);
         }
       } catch (error) {
         console.error("Error fetching events:", error);
         // Fallback to static data
         const staticEvents = getFeaturedEvents();
         setFeaturedEvents(staticEvents);
+        setFilteredEvents(staticEvents);
       } finally {
         setLoading(false);
       }
@@ -58,40 +81,116 @@ const Index = () => {
     fetchApprovedEvents();
   }, []);
 
+  // Filter events when selectedCategories changes
+  useEffect(() => {
+    if (selectedCategories.length === 0) {
+      setFilteredEvents(featuredEvents);
+    } else {
+      const filtered = featuredEvents.filter((event) => 
+        selectedCategories.includes(event.category || '')
+      );
+      setFilteredEvents(filtered);
+    }
+  }, [selectedCategories, featuredEvents]);
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(current => 
+      current.includes(category)
+        ? current.filter(c => c !== category)
+        : [...current, category]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories([]);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
       <Navbar />
       <main className="flex-grow">
         <Hero />
         
-        {/* Combined Featured Events and Categories Section */}
-        <section id="featured-events" className="py-24">
+        {/* Featured Events with Category Filter */}
+        <section id="featured-events" className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-16">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
               <div>
                 <h2 className="section-title">Featured Event Opportunities</h2>
-                <p className="mt-4 text-xl text-muted-foreground max-w-2xl">
+                <p className="mt-4 text-xl text-slate-500 max-w-2xl">
                   Popular events looking for brand sponsors
                 </p>
               </div>
-              <Button variant="outline" size="lg" asChild className="mt-6 lg:mt-0 text-primary border-primary hover:bg-primary/10">
-                <Link to="/events" className="flex items-center">
-                  View All Events <ChevronRight className="ml-1 h-5 w-5" />
-                </Link>
-              </Button>
+              
+              <div className="flex flex-wrap items-center gap-3 mt-6 lg:mt-0">
+                {/* Category filter dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      Filter by Category
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    {categories.map((category) => (
+                      <DropdownMenuCheckboxItem
+                        key={category}
+                        checked={selectedCategories.includes(category)}
+                        onCheckedChange={() => toggleCategory(category)}
+                      >
+                        {category}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {selectedCategories.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="text-slate-500 hover:text-slate-700"
+                  >
+                    Clear filters
+                  </Button>
+                )}
+                
+                <Button variant="outline" size="sm" asChild className="ml-auto text-primary border-primary hover:bg-primary/10">
+                  <Link to="/events" className="flex items-center">
+                    View All Events <ChevronRight className="ml-1 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
             </div>
+
+            {/* Selected filters display */}
+            {selectedCategories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedCategories.map(category => (
+                  <Badge 
+                    key={category} 
+                    variant="outline"
+                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+                    onClick={() => toggleCategory(category)}
+                  >
+                    {category} ×
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {loading ? (
               <div className="flex justify-center py-12">
                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
-            ) : featuredEvents.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No featured events available at the moment.</p>
+            ) : filteredEvents.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-slate-100">
+                <p className="text-slate-500">No events found matching your selected categories.</p>
+                <Button variant="link" onClick={clearFilters}>Clear filters</Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {featuredEvents.map((event) => {
+                {filteredEvents.map((event) => {
                   // Make sure the event exists before rendering it
                   if (!event) {
                     console.error("Invalid featured event:", event);
@@ -117,11 +216,6 @@ const Index = () => {
                 })}
               </div>
             )}
-            
-            {/* Category Section embedded directly below events */}
-            <div className="mt-20">
-              <CategorySection />
-            </div>
           </div>
         </section>
 

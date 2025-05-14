@@ -5,24 +5,24 @@
  
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Changed from pure white to a subtle blue-gray */
-    --foreground: 240 10% 3.9%;
+    --background: 215 25% 96%; /* Changed to a subtle blue-gray */
+    --foreground: 215 25% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 215 25% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 215 25% 12%;
     --primary: 142.1 76.2% 36.3%;
     --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 240 5.9% 10%;
+    --secondary: 215 25% 15%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --muted: 215 20% 92%;
+    --muted-foreground: 215 15% 45%;
+    --accent: 215 20% 92%;
+    --accent-foreground: 215 25% 15%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --border: 215 20% 85%;
+    --input: 215 20% 85%;
     --ring: 142.1 76.2% 36.3%;
     --radius: 0.5rem;
   }
@@ -48,15 +48,16 @@
     @apply text-3xl md:text-4xl font-bold tracking-tight;
     letter-spacing: -0.025em;
     text-shadow: 0 0 1px rgba(0,0,0,0.1);
+    color: #1a2b42;
   }
   
   .section-subtitle {
-    @apply text-lg text-gray-700 mt-2;
+    @apply text-lg text-slate-600 mt-2;
   }
   
   /* Hero section gradient backgrounds */
   .hero-gradient {
-    @apply bg-gradient-to-b from-white to-slate-50;
+    @apply bg-gradient-to-b from-slate-50 to-slate-100;
   }
   
   .glass-card {
@@ -144,7 +145,7 @@
 
 /* Custom shadow effects */
 .shadow-soft {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-hover {

@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import EventEditor from "@/components/EventEditor/EventEditor";
 import EventsTab from "./EventsTab";
 import BidsTab from "./BidsTab";
-import { PieChart, BarChart, Clock, Users } from "lucide-react";
+import { PieChart, BarChart, Clock, Users, LogOut } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const AdminPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -35,7 +35,7 @@ const AdminPage = () => {
     totalUsers: 0
   });
 
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,13 +64,13 @@ const AdminPage = () => {
         .select("*", { count: 'exact', head: true })
         .eq("status", "pending");
       
-      // Get users count - we don't have a profiles table, so we'll estimate based on events with unique user_ids
+      // Get users count based on unique user_ids from events
       const { data: uniqueUsers } = await supabase
         .from("events")
         .select("user_id")
         .not("user_id", "is", null);
       
-      // Count unique user_ids (this is a simplified approach)
+      // Count unique user_ids
       const uniqueUserIds = new Set();
       if (uniqueUsers) {
         uniqueUsers.forEach(item => {
@@ -149,9 +149,14 @@ const AdminPage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-800">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-12 w-12 rounded-full bg-primary/30 mb-4"></div>
           <p className="text-muted-foreground">Loading admin dashboard...</p>
@@ -167,8 +172,10 @@ const AdminPage = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
+      <div className="min-h-screen flex flex-col bg-slate-100 text-slate-800">
+        <header className="bg-white border-b shadow-sm py-3 px-6 flex items-center justify-between">
+          <Logo />
+        </header>
         <div className="flex-1 container mx-auto px-4 py-16 flex items-center justify-center">
           <Card className="w-full max-w-lg">
             <CardHeader>
@@ -192,18 +199,32 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-slate-100 text-slate-800">
+      {/* Admin Header/Navigation Bar */}
+      <header className="bg-white border-b shadow-sm py-3 px-6 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-6">
+          <Logo />
+          <h2 className="text-lg font-medium hidden sm:block">Admin Dashboard</h2>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full text-sm text-slate-600">
+            <span className="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+            <span>{user?.email}</span>
+          </div>
+          
+          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-700">
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </header>
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8 border-b pb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-4 border-b border-slate-200">
           <div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Manage events, bids, and platform settings</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-            <span className="text-sm text-muted-foreground">Logged in as {user?.email}</span>
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600">Admin Dashboard</h1>
+            <p className="text-slate-500 mt-1">Manage events, bids, and platform settings</p>
           </div>
         </div>
 
@@ -212,7 +233,7 @@ const AdminPage = () => {
           <Card className="bg-white hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Total Events</p>
+                <p className="text-sm font-medium text-slate-500 mb-1">Total Events</p>
                 <p className="text-3xl font-bold">{stats.totalEvents}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -224,7 +245,7 @@ const AdminPage = () => {
           <Card className="bg-white hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Total Bids</p>
+                <p className="text-sm font-medium text-slate-500 mb-1">Total Bids</p>
                 <p className="text-3xl font-bold">{stats.totalBids}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-sky-100 flex items-center justify-center">
@@ -236,7 +257,7 @@ const AdminPage = () => {
           <Card className="bg-white hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Pending Approval</p>
+                <p className="text-sm font-medium text-slate-500 mb-1">Pending Approval</p>
                 <p className="text-3xl font-bold">{stats.pendingApprovals}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
@@ -248,7 +269,7 @@ const AdminPage = () => {
           <Card className="bg-white hover:shadow-md transition-shadow">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Total Users</p>
+                <p className="text-sm font-medium text-slate-500 mb-1">Total Users</p>
                 <p className="text-3xl font-bold">{stats.totalUsers}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-violet-100 flex items-center justify-center">

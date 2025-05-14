@@ -1,8 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, MapPinIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, Banknote, Award } from "lucide-react";
 
 export interface EventCardProps {
   event: {
@@ -45,32 +44,34 @@ const EventCard = ({ event }: EventCardProps) => {
 
   return (
     <Link to={`/events/${id}`}>
-      <Card className="overflow-hidden material-card h-full flex flex-col">
-        <div className="aspect-[16/9] relative">
+      <Card className="overflow-hidden material-card h-full flex flex-col hover:shadow-md transition-all duration-300">
+        <div className="aspect-[16/9] relative h-36">
           <img
             src={image || "/placeholder.svg"}
             alt={title}
             className="object-cover w-full h-full opacity-90"
           />
-          <Badge className="absolute top-4 right-4 bg-primary rounded-full py-1.5 px-3">
+          <Badge className="absolute top-2 right-2 bg-primary rounded-full py-1 px-2 text-xs">
             {category}
           </Badge>
         </div>
-        <CardContent className="pt-6 pb-4 flex-grow">
-          <div className="flex items-center mb-2 text-sm text-muted-foreground">
-            <CalendarIcon className="h-4 w-4 mr-1 text-primary" />
-            <span>{new Date(date).toLocaleDateString()}</span>
-          </div>
-          <h3 className="text-xl font-bold mb-3 leading-tight text-balance text-white tracking-tight font-grotesk">{title}</h3>
-          <div className="flex items-center text-muted-foreground text-sm mb-2">
-            <MapPinIcon className="h-4 w-4 mr-1 text-accent" />
-            <p>{location}</p>
+        <CardContent className="pt-3 pb-2 flex-grow">
+          <h3 className="text-base font-bold mb-1 leading-tight text-balance tracking-tight font-grotesk line-clamp-2">{title}</h3>
+          <div className="flex flex-col gap-1 mt-1">
+            <div className="flex items-center text-muted-foreground text-xs">
+              <CalendarIcon className="h-3 w-3 mr-1 text-primary" />
+              <span>{new Date(date).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center text-muted-foreground text-xs">
+              <MapPinIcon className="h-3 w-3 mr-1 text-accent" />
+              <p className="truncate">{location}</p>
+            </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t border-white/10 pt-4 pb-5 bg-muted/5">
-          <div className="w-full">
-            <p className="text-sm text-muted-foreground mb-1">Sponsorship Range:</p>
-            <p className="font-bold text-lg text-primary tracking-tight">
+        <CardFooter className="border-t border-white/10 pt-2 pb-3 bg-muted/5">
+          <div className="w-full flex items-center gap-1">
+            <Banknote className="h-3 w-3 text-primary" />
+            <p className="font-medium text-sm text-primary tracking-tight">
               AED {min_bid.toLocaleString()} - {max_bid.toLocaleString()}
             </p>
           </div>

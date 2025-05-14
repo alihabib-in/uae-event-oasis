@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Filter } from "lucide-react";
+import { ChevronRight, Filter, Tag, Search, Calendar, MapPin, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
@@ -112,12 +112,15 @@ const Index = () => {
         <Hero />
         
         {/* Featured Events with Category Filter */}
-        <section id="featured-events" className="py-20">
+        <section id="featured-events" className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-8">
               <div>
-                <h2 className="section-title">Featured Event Opportunities</h2>
-                <p className="mt-4 text-xl text-slate-500 max-w-2xl">
+                <h2 className="section-title flex items-center gap-2">
+                  <Calendar className="h-6 w-6 text-primary" />
+                  Featured Event Opportunities
+                </h2>
+                <p className="mt-3 text-lg text-slate-500 max-w-2xl">
                   Popular events looking for brand sponsors
                 </p>
               </div>
@@ -149,8 +152,9 @@ const Index = () => {
                     variant="ghost" 
                     size="sm" 
                     onClick={clearFilters}
-                    className="text-slate-500 hover:text-slate-700"
+                    className="text-slate-500 hover:text-slate-700 flex items-center gap-1"
                   >
+                    <X className="h-4 w-4" />
                     Clear filters
                   </Button>
                 )}
@@ -170,10 +174,11 @@ const Index = () => {
                   <Badge 
                     key={category} 
                     variant="outline"
-                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer flex items-center gap-1"
                     onClick={() => toggleCategory(category)}
                   >
-                    {category} ×
+                    <Tag className="h-3 w-3" />
+                    {category} <X className="h-3 w-3 ml-1" />
                   </Badge>
                 ))}
               </div>
@@ -185,11 +190,15 @@ const Index = () => {
               </div>
             ) : filteredEvents.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-slate-100">
+                <Search className="h-10 w-10 mx-auto text-slate-300 mb-3" />
                 <p className="text-slate-500">No events found matching your selected categories.</p>
-                <Button variant="link" onClick={clearFilters}>Clear filters</Button>
+                <Button variant="link" onClick={clearFilters} className="flex items-center gap-1 mx-auto mt-2">
+                  <X className="h-4 w-4" />
+                  Clear filters
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {filteredEvents.map((event) => {
                   // Make sure the event exists before rendering it
                   if (!event) {

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Building, Calendar, Users, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,24 +48,37 @@ const Hero = () => {
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
               <Button size="lg" className="text-lg px-8 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all" asChild>
-                <Link to="/events">Find Events <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                <Link to="/events" className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Find Events <ArrowRight className="ml-1 h-5 w-5" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2 shadow-sm hover:shadow-md transition-all" asChild>
-                <Link to="/post-event">Post Your Event</Link>
+                <Link to="/post-event" className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Post Your Event
+                </Link>
               </Button>
             </div>
             
             <div className="flex flex-wrap gap-4 mt-8">
-              <Button variant="ghost" className="hover:bg-muted/20" asChild>
-                <Link to="/for-brands">For Brands</Link>
+              <Button variant="ghost" className="hover:bg-muted/20 flex items-center gap-2" asChild>
+                <Link to="/for-brands">
+                  <Building className="h-4 w-4" />
+                  For Brands
+                </Link>
               </Button>
-              <Button variant="ghost" className="hover:bg-muted/20" asChild>
-                <Link to="/for-organizers">For Organizers</Link>
+              <Button variant="ghost" className="hover:bg-muted/20 flex items-center gap-2" asChild>
+                <Link to="/for-organizers">
+                  <Users className="h-4 w-4" />
+                  For Organizers
+                </Link>
               </Button>
             </div>
             
-            <div className="mt-12 max-w-3xl">
-              <p className="text-sm text-gray-700 mb-2">
+            <div className="mt-12 max-w-md">
+              <p className="text-sm text-gray-700 mb-2 flex items-center gap-1">
+                <Users className="h-4 w-4 text-primary" />
                 <span className="font-semibold text-foreground">200+ </span> 
                 organizers trust our platform
               </p>
@@ -75,7 +88,7 @@ const Hero = () => {
                 onMouseLeave={() => setIsHoveringBrands(false)}
               >
                 <div 
-                  className="flex space-x-8 transition-transform duration-5000"
+                  className="flex space-x-6 transition-transform duration-5000"
                   style={{ 
                     transform: isHoveringBrands ? 'translateX(-33%)' : 'translateX(0)',
                     transition: isHoveringBrands ? 'transform 15s linear' : 'none'
@@ -86,7 +99,7 @@ const Hero = () => {
                       <img 
                         src={brand.logo} 
                         alt={brand.name} 
-                        className="h-8 max-w-32 object-contain opacity-80 hover:opacity-100 transition-opacity" 
+                        className="h-8 max-w-24 object-contain opacity-80 hover:opacity-100 transition-opacity" 
                       />
                     </div>
                   ))}
@@ -96,7 +109,7 @@ const Hero = () => {
                       <img 
                         src={brand.logo} 
                         alt={brand.name} 
-                        className="h-8 max-w-32 object-contain opacity-80 hover:opacity-100 transition-opacity" 
+                        className="h-8 max-w-24 object-contain opacity-80 hover:opacity-100 transition-opacity" 
                       />
                     </div>
                   ))}
@@ -125,7 +138,7 @@ const Hero = () => {
                   <p className="text-lg font-semibold">Dubai International Conference</p>
                   <p className="text-sm opacity-90">Featured Event</p>
                   <div className="mt-2 flex items-center">
-                    <span className="text-xs text-white/70">Starting at </span>
+                    <Banknote className="h-4 w-4 mr-1 text-white/70" />
                     <span className="ml-1 font-semibold">AED 5,000</span>
                   </div>
                 </div>
@@ -141,7 +154,8 @@ const Hero = () => {
               </div>
             </div>
             <div className="absolute -top-4 -right-4 bg-white p-3 rounded-xl shadow-md flex items-center">
-              <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+              <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium flex items-center gap-1">
+                <Award className="h-3 w-3" />
                 Live Bidding
               </div>
             </div>

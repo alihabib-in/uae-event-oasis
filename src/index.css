@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -5,25 +6,25 @@
  
 @layer base {
   :root {
-    --background: 215 25% 96%; /* Changed to a subtle blue-gray */
-    --foreground: 215 25% 12%;
+    --background: 220 14% 96%;
+    --foreground: 220 14% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 12%;
+    --card-foreground: 220 14% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 12%;
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 215 25% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 215 20% 92%;
-    --muted-foreground: 215 15% 45%;
-    --accent: 215 20% 92%;
-    --accent-foreground: 215 25% 15%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 215 20% 85%;
-    --input: 215 20% 85%;
-    --ring: 142.1 76.2% 36.3%;
+    --popover-foreground: 220 14% 10%;
+    --primary: 230 100% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 24%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 14% 46%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 220 14% 24%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 85%;
+    --input: 220 14% 85%;
+    --ring: 230 100% 62%;
     --radius: 0.5rem;
   }
   
@@ -40,14 +41,12 @@
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold tracking-tight;
-    letter-spacing: -0.025em;
-    text-shadow: 0 0 1px rgba(0,0,0,0.05);
+    letter-spacing: -0.01em;
   }
   
   .section-title {
     @apply text-3xl md:text-4xl font-bold tracking-tight;
-    letter-spacing: -0.025em;
-    text-shadow: 0 0 1px rgba(0,0,0,0.1);
+    letter-spacing: -0.01em;
     color: #1a2b42;
   }
   
@@ -55,18 +54,18 @@
     @apply text-lg text-slate-600 mt-2;
   }
   
-  /* Hero section gradient backgrounds */
+  /* Updated styling for OpenCollective look */
   .hero-gradient {
-    @apply bg-gradient-to-b from-slate-50 to-slate-100;
+    @apply bg-gradient-to-b from-white to-blue-50;
   }
   
   .glass-card {
-    @apply bg-white/90 backdrop-blur-md shadow-md;
+    @apply bg-white shadow-md rounded-lg;
   }
 
-  /* Text gradient for hero */
+  /* New text gradient in OpenCollective style */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-500;
   }
   
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -79,6 +78,27 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+}
+
+/* OpenCollective-inspired styling */
+.oc-button {
+  @apply rounded-md px-4 py-2 font-medium transition-all;
+}
+
+.oc-button-primary {
+  @apply bg-primary text-white hover:bg-primary/90;
+}
+
+.oc-button-secondary {
+  @apply bg-white border border-gray-300 text-gray-700 hover:bg-gray-50;
+}
+
+.oc-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.oc-card {
+  @apply bg-white rounded-lg border border-gray-200 overflow-hidden transition-shadow hover:shadow-md;
 }
 
 /* Animation for horizontal continuous scrolling */

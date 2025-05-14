@@ -19,9 +19,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['fkGrotesk', 'system-ui', 'sans-serif'],
-				grotesk: ['fkGrotesk', 'system-ui', 'sans-serif'],
-				heading: ['fkGrotesk', 'system-ui', 'sans-serif'] // Added the missing font-heading class
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				grotesk: ['Inter', 'system-ui', 'sans-serif'],
+				heading: ['Inter', 'system-ui', 'sans-serif'] // Changed to Inter like OpenCollective
 			},
 			colors: {
 				border: 'hsl(var(--border))',

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Building, Calendar, Users, ChevronRight } from "lucide-react";
+import { ArrowRight, Building, Calendar, Users, ChevronRight, Banknote, Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 

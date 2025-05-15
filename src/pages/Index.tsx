@@ -1,4 +1,4 @@
-
+// Only update the part related to the commission percentage - keeping the rest of the file the same
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +106,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-white text-slate-800">
       <Navbar />
       <main className="flex-grow">
         <Hero />
@@ -121,7 +121,7 @@ const Index = () => {
                   Featured Event Opportunities
                 </h2>
                 <p className="mt-3 text-lg text-slate-500 max-w-2xl">
-                  Popular events looking for brand sponsors
+                  Popular events looking for brand sponsors - with 0% commission
                 </p>
               </div>
               

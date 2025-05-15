@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -6,7 +7,7 @@ type Theme = "light";  // Only light theme
 
 type ThemeContextType = {
   theme: Theme;
-  toggleTheme: () => void; // Added this function to the type
+  toggleTheme: () => void;
 };
 
 // Create the context with a default undefined value

@@ -7,24 +7,24 @@
  
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
     --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 32% 17%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
     --ring: 224 71% 45%;
     --radius: 0.5rem;
   }
@@ -48,25 +48,25 @@
   .section-title {
     @apply text-3xl md:text-4xl font-bold tracking-tight;
     letter-spacing: -0.01em;
-    color: #e2e8f0;
+    color: #333;
   }
   
   .section-subtitle {
-    @apply text-lg text-slate-400 mt-2;
+    @apply text-lg text-slate-600 mt-2;
   }
   
-  /* Updated styling for dark theme */
+  /* Updated styling for white theme */
   .hero-gradient {
-    @apply bg-gradient-to-b from-[#1a1f2c] to-[#131824];
+    @apply bg-gradient-to-b from-white to-slate-50;
   }
   
   .glass-card {
-    @apply bg-slate-800/70 shadow-lg rounded-lg border border-slate-700/50;
+    @apply bg-white/95 shadow-sm rounded-lg border border-slate-200;
   }
 
-  /* New text gradient in dark style */
+  /* New text gradient in light style */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600;
   }
   
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -81,7 +81,7 @@
   }
 }
 
-/* Dark theme-inspired styling */
+/* Light theme-inspired styling */
 .oc-button {
   @apply rounded-md px-4 py-2 font-medium transition-all;
 }
@@ -91,7 +91,7 @@
 }
 
 .oc-button-secondary {
-  @apply bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700;
+  @apply bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200;
 }
 
 .oc-container {
@@ -99,7 +99,7 @@
 }
 
 .oc-card {
-  @apply bg-slate-800 rounded-lg border border-slate-700 overflow-hidden transition-shadow hover:shadow-md;
+  @apply bg-white rounded-lg border border-slate-200 overflow-hidden transition-shadow hover:shadow-md;
 }
 
 /* Animation for horizontal continuous scrolling */
@@ -166,7 +166,7 @@
 
 /* Custom shadow effects */
 .shadow-soft {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .shadow-hover {
@@ -174,7 +174,7 @@
 }
 
 .shadow-hover:hover {
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2), 0 10px 15px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
@@ -189,15 +189,15 @@
   box-shadow: 0 10px 15px -3px rgba(var(--primary), 0.3);
 }
 
-/* Dark theme utils */
+/* Light theme utils */
 .dark-card {
-  @apply bg-slate-800/90 border border-slate-700/50 rounded-lg shadow-md;
+  @apply bg-white border border-slate-200 rounded-lg shadow-sm;
 }
 
 .dark-input {
-  @apply bg-slate-800 border border-slate-700 text-slate-200 placeholder:text-slate-500;
+  @apply bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400;
 }
 
 .dark-highlight {
-  @apply bg-blue-500/10 text-blue-400;
+  @apply bg-blue-50 text-blue-600;
 }

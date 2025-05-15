@@ -70,20 +70,40 @@ const EventDetail = () => {
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
       // Try to get the event from Supabase first
       if (eventId) {
         try {
+          console.log("Fetching event with ID:", eventId);
           const { data, error } = await supabase
             .from("events")
             .select("*")
             .eq("id", eventId)
             .single();
 
-          if (!error && data) {
+          if (error) {
+            console.error("Error fetching from Supabase:", error);
+            setFetchError(`Database error: ${error.message}`);
+            
+            // Try to get from static data as fallback
+            const staticEvent = getEventById(eventId || "");
+            if (staticEvent) {
+              setEvent(staticEvent);
+              setFetchError(null);
+              setLoading(false);
+              return;
+            }
+            
+            setLoading(false);
+            return;
+          }
+
+          if (data) {
             // If found in Supabase, normalize data format
+            console.log("Event data found:", data);
             const supabaseEvent: Event = {
               id: data.id,
               title: data.title,
@@ -96,8 +116,7 @@ const EventDetail = () => {
               minBid: data.min_bid,
               maxBid: data.max_bid,
               attendees: data.attendees || 1000,
-              // Fix: Make sure to check if organizer_id exists before accessing
-              organizerId: data.user_id || undefined, // Using user_id instead of non-existent organizer_id
+              organizerId: data.user_id || undefined,
               organizerName: data.organizer_name || "Event Organizer",
               organizerLogo: data.organizer_logo,
               image: data.image || "/placeholder.svg",
@@ -108,7 +127,6 @@ const EventDetail = () => {
                 "Speaking opportunity"
               ],
               status: data.status,
-              // Fix: featured property doesn't exist in Supabase events, so default to false
               featured: false,
               tags: data.tags || []
             };
@@ -120,6 +138,7 @@ const EventDetail = () => {
           }
         } catch (error) {
           console.error("Error fetching from Supabase:", error);
+          setFetchError("An unexpected error occurred while fetching the event.");
         }
       }
 
@@ -127,6 +146,9 @@ const EventDetail = () => {
       const staticEvent = getEventById(eventId || "");
       if (staticEvent) {
         setEvent(staticEvent);
+        setFetchError(null);
+      } else {
+        setFetchError("Event not found in database or static data.");
       }
       
       setLoading(false);
@@ -235,9 +257,14 @@ const EventDetail = () => {
         <main className="flex-grow py-16 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-white mb-4 font-grotesk">Event Not Found</h1>
-            <p className="text-gray-300 mb-8">
-              The event you're looking for doesn't exist or has been removed.
+            <p className="text-gray-300 mb-2">
+              {fetchError || "The event you're looking for doesn't exist or has been removed."}
             </p>
+            {fetchError && fetchError.includes("Database") && (
+              <p className="text-sm text-red-400 mb-8">
+                Please try again later or contact support if the issue persists.
+              </p>
+            )}
             <Button asChild>
               <Link to="/events">Browse All Events</Link>
             </Button>

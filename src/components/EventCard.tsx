@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,36 +45,46 @@ const EventCard = ({ event }: EventCardProps) => {
 
   return (
     <Link to={`/events/${id}`}>
-      <Card className="overflow-hidden material-card h-full flex flex-col hover:shadow-md transition-all duration-300">
-        <div className="aspect-[16/9] relative h-36">
+      <Card className="overflow-hidden group hover:shadow-xl transition-all duration-500 border-primary/10 h-full flex flex-col transform hover:-translate-y-1">
+        <div className="aspect-[16/9] relative h-40 overflow-hidden">
           <img
             src={image || "/placeholder.svg"}
             alt={title}
-            className="object-cover w-full h-full opacity-90"
+            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
           />
-          <Badge className="absolute top-2 right-2 bg-primary rounded-full py-1 px-2 text-xs">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
+          <Badge className="absolute top-2 right-2 bg-primary hover:bg-primary text-white rounded-full py-1 px-3 text-xs shadow-md">
             {category}
           </Badge>
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="text-lg font-bold text-white mb-1 leading-tight text-balance tracking-tight font-grotesk line-clamp-2 drop-shadow-md">
+              {title}
+            </h3>
+          </div>
         </div>
         <CardContent className="pt-3 pb-2 flex-grow">
-          <h3 className="text-base font-bold mb-1 leading-tight text-balance tracking-tight font-grotesk line-clamp-2">{title}</h3>
-          <div className="flex flex-col gap-1 mt-1">
+          <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-center text-muted-foreground text-xs">
-              <CalendarIcon className="h-3 w-3 mr-1 text-primary" />
+              <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-primary" />
               <span>{new Date(date).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center text-muted-foreground text-xs">
-              <MapPinIcon className="h-3 w-3 mr-1 text-accent" />
+              <MapPinIcon className="h-3.5 w-3.5 mr-1.5 text-accent" />
               <p className="truncate">{location}</p>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t border-white/10 pt-2 pb-3 bg-muted/5">
-          <div className="w-full flex items-center gap-1">
-            <Banknote className="h-3 w-3 text-primary" />
+        <CardFooter className="border-t border-primary/5 pt-3 pb-3 bg-muted/10">
+          <div className="w-full flex items-center gap-2">
+            <Banknote className="h-4 w-4 text-primary" />
             <p className="font-medium text-sm text-primary tracking-tight">
               AED {min_bid.toLocaleString()} - {max_bid.toLocaleString()}
             </p>
+            <div className="ml-auto">
+              <Badge variant="outline" className="bg-primary/5 border-primary/10 text-xs">
+                <Award className="h-3 w-3 mr-1" /> Sponsor
+              </Badge>
+            </div>
           </div>
         </CardFooter>
       </Card>

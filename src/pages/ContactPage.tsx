@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +47,6 @@ const ContactPage = () => {
     
     try {
       // Use the edge function instead of directly inserting into the database
-      // since the contact_inquiries table doesn't exist in the types yet
       await supabase.functions.invoke('send-contact-form', {
         body: { 
           name: data.name,
@@ -79,54 +79,86 @@ const ContactPage = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            {/* Contact sidebar (vertical layout as requested) */}
+            <div className="space-y-6 lg:sticky lg:top-24">
+              <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium text-lg mb-2">Email Us</h3>
+                <p className="text-muted-foreground mb-4">Our team is here to help</p>
+                <a href="mailto:info@sponsorby.com" className="text-primary hover:underline">
+                  info@sponsorby.com
+                </a>
               </div>
-              <h3 className="font-medium text-lg mb-2">Email Us</h3>
-              <p className="text-muted-foreground mb-4">Our team is here to help</p>
-              <a href="mailto:info@sponsorby.com" className="text-primary hover:underline">
-                info@sponsorby.com
-              </a>
-            </div>
-            
-            <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Phone className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-medium text-lg mb-2">Call Us</h3>
-              <p className="text-muted-foreground mb-4">Mon-Fri from 9am to 5pm</p>
-              <a href="tel:+97144001122" className="text-primary hover:underline">
-                +971 4 400 1122
-              </a>
-            </div>
-            
-            <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <MapPin className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-medium text-lg mb-2">Visit Us</h3>
-              <p className="text-muted-foreground mb-4">Our office location</p>
-              <p className="text-primary">Dubai Media City, Dubai, UAE</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="bg-card/30 p-8 rounded-xl">
-              <h2 className="text-2xl font-medium mb-6">Send Us a Message</h2>
               
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Phone className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium text-lg mb-2">Call Us</h3>
+                <p className="text-muted-foreground mb-4">Mon-Fri from 9am to 5pm</p>
+                <a href="tel:+97144001122" className="text-primary hover:underline">
+                  +971 4 400 1122
+                </a>
+              </div>
+              
+              <div className="flex flex-col items-center text-center p-6 bg-card/30 rounded-xl">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <MapPin className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium text-lg mb-2">Visit Us</h3>
+                <p className="text-muted-foreground mb-4">Our office location</p>
+                <p className="text-primary">Dubai Media City, Dubai, UAE</p>
+              </div>
+            </div>
+          
+            {/* Main content area (form and map) spanning 2 columns */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-card/30 p-8 rounded-xl">
+                <h2 className="text-2xl font-medium mb-6">Send Us a Message</h2>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="your.email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <FormField
                       control={form.control}
-                      name="name"
+                      name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel>Subject</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your name" {...field} />
+                            <Input placeholder="What is this regarding?" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -135,68 +167,40 @@ const ContactPage = () => {
                     
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Message</FormLabel>
                           <FormControl>
-                            <Input placeholder="your.email@example.com" {...field} />
+                            <Textarea 
+                              placeholder="Your message" 
+                              className="min-h-[120px]" 
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <FormControl>
-                          <Input placeholder="What is this regarding?" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Your message" 
-                            className="min-h-[120px]" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
-            
-            <div className="h-full rounded-xl overflow-hidden min-h-[400px]">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3613.1678419858843!2d55.15009881500934!3d25.090717983944615!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f6b5402c126e3%3A0xb9511e6655c46d94!2sDubai%20Media%20City!5e0!3m2!1sen!2sae!4v1622555234684!5m2!1sen!2sae" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen 
-                loading="lazy"
-                title="sponsorby office location"
-              ></iframe>
+                    
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? "Sending..." : "Send Message"}
+                    </Button>
+                  </form>
+                </Form>
+              </div>
+              
+              <div className="h-[400px] rounded-xl overflow-hidden">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3613.1678419858843!2d55.15009881500934!3d25.090717983944615!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f6b5402c126e3%3A0xb9511e6655c46d94!2sDubai%20Media%20City!5e0!3m2!1sen!2sae!4v1622555234684!5m2!1sen!2sae" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen 
+                  loading="lazy"
+                  title="sponsorby office location"
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>

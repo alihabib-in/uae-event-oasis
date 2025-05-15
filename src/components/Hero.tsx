@@ -1,13 +1,34 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Building, Calendar, Users, ChevronRight, Banknote, Award } from "lucide-react";
+import { ArrowRight, Building, Calendar, Users, Banknote, Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>("https://videos.pexels.com/video-files/10839348/10839348-uhd_2732_1440_30fps.mp4");
-  const [isHoveringBrands, setIsHoveringBrands] = useState(false);
+  const [currentBrandIndex, setCurrentBrandIndex] = useState(0);
+  const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
+  
+  // Reduced to just 4 brands as requested
+  const brands = [
+    {
+      name: "Al Futtaim",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Majid_Al_Futtaim_logo.svg/2560px-Majid_Al_Futtaim_logo.svg.png"
+    },
+    {
+      name: "Emirates",
+      logo: "https://klairport.info/ap-content/uploads/emirates-airlines.png"
+    },
+    {
+      name: "Emaar",
+      logo: "https://i0.wp.com/achiever.ae/wp-content/uploads/2024/04/Emaar-Properties-Logo-e1713776008292.png?ssl=1"
+    },
+    {
+      name: "Dubai Holding",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Dubai_Holding_logo.svg/2560px-Dubai_Holding_logo.svg.png"
+    }
+  ];
   
   useEffect(() => {
     // Fetch hero video URL from admin settings
@@ -34,6 +55,28 @@ const Hero = () => {
     
     fetchSettings();
   }, []);
+
+  // Handle brand logo fade animation
+  useEffect(() => {
+    // Set up fade out/in cycle
+    const fadeOutTimer = setTimeout(() => {
+      if (fadeState === 'in') {
+        setFadeState('out');
+      }
+    }, 3000); // Show each brand for 3 seconds before fading out
+    
+    const changeLogoTimer = setTimeout(() => {
+      if (fadeState === 'out') {
+        setCurrentBrandIndex((prevIndex) => (prevIndex + 1) % brands.length);
+        setFadeState('in');
+      }
+    }, 3500); // Wait for fade out to complete before changing logo
+    
+    return () => {
+      clearTimeout(fadeOutTimer);
+      clearTimeout(changeLogoTimer);
+    };
+  }, [fadeState, brands.length]);
 
   return (
     <div className="hero-gradient min-h-[92vh] flex items-center relative overflow-hidden">
@@ -82,43 +125,23 @@ const Hero = () => {
                 <span className="font-semibold text-foreground">200+ </span> 
                 organizers trust our platform
               </p>
-              <div 
-                className="overflow-hidden h-12"
-                onMouseEnter={() => setIsHoveringBrands(true)} 
-                onMouseLeave={() => setIsHoveringBrands(false)}
-              >
-                <div 
-                  className="flex space-x-6 transition-transform duration-5000"
-                  style={{ 
-                    transform: isHoveringBrands ? 'translateX(-33%)' : 'translateX(0)',
-                    transition: isHoveringBrands ? 'transform 15s linear' : 'none'
-                  }}
+              <div className="overflow-hidden h-12">
+                <div
+                  className={`flex items-center justify-center transition-opacity duration-500 h-12 ${
+                    fadeState === 'in' ? 'opacity-100' : 'opacity-0'
+                  }`}
                 >
-                  {brands.map((brand, index) => (
-                    <div key={index} className="flex-shrink-0">
-                      <img 
-                        src={brand.logo} 
-                        alt={brand.name} 
-                        className="h-8 max-w-24 object-contain opacity-80 hover:opacity-100 transition-opacity" 
-                      />
-                    </div>
-                  ))}
-                  {/* Duplicate first few brands for continuous scrolling effect */}
-                  {brands.slice(0, 4).map((brand, index) => (
-                    <div key={`duplicate-${index}`} className="flex-shrink-0">
-                      <img 
-                        src={brand.logo} 
-                        alt={brand.name} 
-                        className="h-8 max-w-24 object-contain opacity-80 hover:opacity-100 transition-opacity" 
-                      />
-                    </div>
-                  ))}
+                  <img 
+                    src={brands[currentBrandIndex].logo} 
+                    alt={brands[currentBrandIndex].name} 
+                    className="h-8 max-w-32 object-contain" 
+                  />
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="lg:col-span-2 relative animate-scale-in">
+          <div className="lg:col-span-2 relative animate-scale-in mt-8 lg:mt-0">
             <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
               {/* Video content */}
               <video 
@@ -165,33 +188,5 @@ const Hero = () => {
     </div>
   );
 };
-
-// Sample brand logos
-const brands = [
-  {
-    name: "Al Futtaim",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Majid_Al_Futtaim_logo.svg/2560px-Majid_Al_Futtaim_logo.svg.png"
-  },
-  {
-    name: "Emirates",
-    logo: "https://klairport.info/ap-content/uploads/emirates-airlines.png"
-  },
-  {
-    name: "ADGM",
-    logo: "https://cebcmena.com/wp-content/uploads/2023/12/R10ba810ff55d09ce7bf9609bc51c744b_0538e58e12.png"
-  },
-  {
-    name: "Emaar",
-    logo: "https://i0.wp.com/achiever.ae/wp-content/uploads/2024/04/Emaar-Properties-Logo-e1713776008292.png?ssl=1"
-  },
-  {
-    name: "Etihad",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Etihad_Airways_logo_2018.svg/2560px-Etihad_Airways_logo_2018.svg.png"
-  },
-  {
-    name: "Dubai Holding",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Dubai_Holding_logo.svg/2560px-Dubai_Holding_logo.svg.png"
-  }
-];
 
 export default Hero;

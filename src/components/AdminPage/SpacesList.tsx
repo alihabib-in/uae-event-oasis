@@ -20,7 +20,7 @@ const SpacesList: React.FC<SpacesListProps> = ({ spaces, onEdit }) => {
             <TableHead>Name</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Capacity</TableHead>
-            <TableHead>Base Price</TableHead>
+            <TableHead>Price</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -31,7 +31,7 @@ const SpacesList: React.FC<SpacesListProps> = ({ spaces, onEdit }) => {
               <TableCell className="font-medium">{space.name}</TableCell>
               <TableCell>{space.location}</TableCell>
               <TableCell>{space.capacity}</TableCell>
-              <TableCell>Quote Only</TableCell>
+              <TableCell className="text-gray-600">Quote Only</TableCell>
               <TableCell>
                 {space.available ? (
                   <Badge className="bg-green-100 text-green-800">

@@ -7,26 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Check, X, Calendar, Users, Building, Info, MessageSquare } from "lucide-react";
+import { Check, X, Calendar, Users, Building, Info, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-
-// Define the request type
-interface SpaceRequest {
-  id: string;
-  requester_name: string;
-  company_name: string | null;
-  email: string;
-  phone: string;
-  space_type: string;
-  capacity: number;
-  event_type: string;
-  preferred_date: string;
-  end_date: string;
-  additional_requirements: string | null;
-  status: string;
-  admin_response: string | null;
-  created_at: string;
-}
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { SpaceRequest } from "@/types/spaces";
 
 const SpaceRequestsTab = () => {
   const [requests, setRequests] = useState<SpaceRequest[]>([]);
@@ -35,6 +19,8 @@ const SpaceRequestsTab = () => {
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
   const [adminResponse, setAdminResponse] = useState("");
   const [responseStatus, setResponseStatus] = useState<"approved" | "rejected" | "pending">("pending");
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -74,6 +60,40 @@ const SpaceRequestsTab = () => {
     setResponseStatus(request.status as "approved" | "rejected" | "pending");
     setIsResponseDialogOpen(true);
   };
+  
+  const handleDeleteRequest = (requestId: string) => {
+    setRequestToDelete(requestId);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const confirmDeleteRequest = async () => {
+    if (!requestToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("space_rental_requests")
+        .delete()
+        .eq("id", requestToDelete);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Request Deleted",
+        description: "The space request has been deleted."
+      });
+      
+      setIsDeleteDialogOpen(false);
+      setRequestToDelete(null);
+      fetchRequests();
+    } catch (error: any) {
+      console.error("Error deleting request:", error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting request",
+        description: error.message
+      });
+    }
+  };
 
   const saveResponse = async () => {
     if (!viewingRequest) return;
@@ -106,6 +126,82 @@ const SpaceRequestsTab = () => {
       });
     }
   };
+  
+  const addSampleRequests = async () => {
+    setLoading(true);
+    try {
+      const today = new Date();
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      
+      const threeMonths = new Date(today);
+      threeMonths.setMonth(threeMonths.getMonth() + 3);
+      
+      const sampleRequests = [
+        {
+          requester_name: "Mohammed Al Qasimi",
+          company_name: "Gulf Innovations",
+          email: "m.alqasimi@gulfinnov.ae",
+          phone: "+971501234567",
+          space_type: "Conference Hall",
+          event_type: "Corporate Summit",
+          preferred_date: nextMonth.toISOString().split('T')[0],
+          end_date: new Date(nextMonth.setDate(nextMonth.getDate() + 2)).toISOString().split('T')[0],
+          capacity: 120,
+          additional_requirements: "Need AV equipment, catering options, and parking for 100 cars",
+          status: "pending"
+        },
+        {
+          requester_name: "Sarah Johnson",
+          company_name: "Global Events Ltd",
+          email: "sarah@globalevents.com",
+          phone: "+971502345678",
+          space_type: "Exhibition Hall",
+          event_type: "Product Launch",
+          preferred_date: threeMonths.toISOString().split('T')[0],
+          end_date: new Date(threeMonths.setDate(threeMonths.getDate() + 5)).toISOString().split('T')[0],
+          capacity: 350,
+          additional_requirements: "Need stage setup, lighting, and sound system. Also require VIP area and separate media room.",
+          status: "pending"
+        },
+        {
+          requester_name: "Ahmed Hassan",
+          company_name: null,
+          email: "ahmed.hassan@gmail.com",
+          phone: "+971503456789",
+          space_type: "Ballroom",
+          event_type: "Wedding Reception",
+          preferred_date: new Date(today.setMonth(today.getMonth() + 2)).toISOString().split('T')[0],
+          end_date: new Date(today.setDate(today.getDate() + 1)).toISOString().split('T')[0],
+          capacity: 200,
+          additional_requirements: "Looking for venue with outdoor garden area for photography, catering facilities, and decoration options",
+          status: "pending"
+        }
+      ];
+      
+      const { error } = await supabase
+        .from("space_rental_requests")
+        .insert(sampleRequests);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Sample Requests Added",
+        description: "Sample space rental requests have been added."
+      });
+      
+      fetchRequests();
+    } catch (error: any) {
+      console.error("Error adding sample requests:", error);
+      toast({
+        variant: "destructive",
+        title: "Error adding sample requests",
+        description: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getBadgeForStatus = (status: string) => {
     switch (status) {
@@ -131,9 +227,14 @@ const SpaceRequestsTab = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Space Rental Requests</h2>
-        <Button onClick={fetchRequests} variant="outline" size="sm">
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={addSampleRequests} variant="outline">
+            <Plus className="h-4 w-4 mr-1" /> Add Sample Requests
+          </Button>
+          <Button onClick={fetchRequests} variant="outline" size="sm">
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -141,14 +242,14 @@ const SpaceRequestsTab = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : requests.length === 0 ? (
-        <div className="text-center py-8 border rounded-md bg-slate-800/30">
+        <div className="text-center py-8 border rounded-md bg-slate-100">
           <Calendar className="w-12 h-12 mx-auto text-slate-500 mb-2" />
           <p className="text-slate-500">No space rental requests yet</p>
         </div>
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>
-            <TableHeader className="bg-slate-800/50">
+            <TableHeader>
               <TableRow>
                 <TableHead>Requester</TableHead>
                 <TableHead>Space Type</TableHead>
@@ -180,6 +281,9 @@ const SpaceRequestsTab = () => {
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleOpenResponseDialog(request)}>
                         <MessageSquare className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteRequest(request.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -244,7 +348,7 @@ const SpaceRequestsTab = () => {
               {viewingRequest.additional_requirements && (
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground">Additional Requirements</h4>
-                  <p className="mt-2 text-sm bg-slate-800/30 p-3 rounded border border-slate-700/50">
+                  <p className="mt-2 text-sm bg-slate-100 p-3 rounded border border-slate-200">
                     {viewingRequest.additional_requirements}
                   </p>
                 </div>
@@ -263,7 +367,7 @@ const SpaceRequestsTab = () => {
               {viewingRequest.admin_response && (
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground">Admin Response</h4>
-                  <p className="mt-2 text-sm bg-slate-800/30 p-3 rounded border border-slate-700/50">
+                  <p className="mt-2 text-sm bg-slate-100 p-3 rounded border border-slate-200">
                     {viewingRequest.admin_response}
                   </p>
                 </div>
@@ -317,7 +421,7 @@ const SpaceRequestsTab = () => {
             <div>
               <p className="text-sm font-medium mb-2">Response Message</p>
               <Textarea
-                className="dark-input min-h-[150px]"
+                className="min-h-[150px]"
                 value={adminResponse}
                 onChange={(e) => setAdminResponse(e.target.value)}
                 placeholder="Provide details about your decision..."
@@ -334,6 +438,24 @@ const SpaceRequestsTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Request Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this space rental request. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteRequest} className="bg-red-500 hover:bg-red-600">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

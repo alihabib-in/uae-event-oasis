@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -71,84 +70,66 @@ const EventDetail = () => {
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
-      if (!eventId) {
-        setFetchError("No event ID provided");
-        setLoading(false);
-        return;
-      }
+      // Try to get the event from Supabase first
+      if (eventId) {
+        try {
+          const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .eq("id", eventId)
+            .single();
 
-      try {
-        console.log("Fetching event with ID:", eventId);
-        
-        // Try to get the event from Supabase
-        const { data, error } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (error) {
-          console.error("Error fetching from Supabase:", error);
-          setFetchError(`Database error: ${error.message}`);
-          
-          // Try to get from static data as fallback
-          const staticEvent = getEventById(eventId);
-          if (staticEvent) {
-            console.log("Found event in static data:", staticEvent);
-            setEvent(staticEvent);
-            setFetchError(null);
-          } else {
-            setFetchError("Event not found in database or static data");
+          if (!error && data) {
+            // If found in Supabase, normalize data format
+            const supabaseEvent: Event = {
+              id: data.id,
+              title: data.title,
+              description: data.description || "",
+              date: data.date,
+              endDate: data.end_date,
+              location: data.location,
+              venue: data.venue || "To be announced",
+              category: data.category,
+              minBid: data.min_bid,
+              maxBid: data.max_bid,
+              attendees: data.attendees || 1000,
+              // Fix: Make sure to check if organizer_id exists before accessing
+              organizerId: data.user_id || undefined, // Using user_id instead of non-existent organizer_id
+              organizerName: data.organizer_name || "Event Organizer",
+              organizerLogo: data.organizer_logo,
+              image: data.image || "/placeholder.svg",
+              sponsorshipDetails: data.sponsorship_details || [
+                "Logo placement on event materials",
+                "Brand visibility during the event",
+                "Social media promotion",
+                "Speaking opportunity"
+              ],
+              status: data.status,
+              // Fix: featured property doesn't exist in Supabase events, so default to false
+              featured: false,
+              tags: data.tags || []
+            };
+            
+            setEvent(supabaseEvent);
+            fetchPackages(data.id);
+            setLoading(false);
+            return;
           }
-          setLoading(false);
-          return;
+        } catch (error) {
+          console.error("Error fetching from Supabase:", error);
         }
-        
-        if (data) {
-          console.log("Found event in Supabase:", data);
-          // If found in Supabase, normalize data format
-          const supabaseEvent: Event = {
-            id: data.id,
-            title: data.title,
-            description: data.description || "",
-            date: data.date,
-            endDate: data.end_date,
-            location: data.location,
-            venue: data.venue || "To be announced",
-            category: data.category,
-            minBid: data.min_bid,
-            maxBid: data.max_bid,
-            attendees: data.attendees || 1000,
-            organizerId: data.user_id || undefined,
-            organizerName: data.organizer_name || "Event Organizer",
-            organizerLogo: data.organizer_logo,
-            image: data.image || "/placeholder.svg",
-            sponsorshipDetails: data.sponsorship_details || [
-              "Logo placement on event materials",
-              "Brand visibility during the event",
-              "Social media promotion",
-              "Speaking opportunity"
-            ],
-            status: data.status,
-            featured: false,
-            tags: data.tags || []
-          };
-          
-          setEvent(supabaseEvent);
-          fetchPackages(data.id);
-        } else {
-          setFetchError("Event data is null");
-        }
-      } catch (error: any) {
-        console.error("Error in fetchEvent:", error);
-        setFetchError(`Unexpected error: ${error.message}`);
-      } finally {
-        setLoading(false);
       }
+
+      // If not found in Supabase or there was an error, try to get from static data
+      const staticEvent = getEventById(eventId || "");
+      if (staticEvent) {
+        setEvent(staticEvent);
+      }
+      
+      setLoading(false);
     };
 
     fetchEvent();
@@ -247,18 +228,15 @@ const EventDetail = () => {
     );
   }
 
-  if (fetchError || !event) {
+  if (!event) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-grow py-16 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-800 mb-4 font-grotesk">Event Not Found</h1>
-            <p className="text-slate-600 mb-4">
-              {fetchError || "The event you're looking for doesn't exist or has been removed."}
-            </p>
-            <p className="text-slate-500 mb-8">
-              Error ID: {eventId || "unknown"}
+            <h1 className="text-3xl font-bold text-white mb-4 font-grotesk">Event Not Found</h1>
+            <p className="text-gray-300 mb-8">
+              The event you're looking for doesn't exist or has been removed.
             </p>
             <Button asChild>
               <Link to="/events">Browse All Events</Link>

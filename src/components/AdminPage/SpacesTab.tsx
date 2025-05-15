@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,8 @@ const spaceFormSchema = z.object({
   capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
   base_price: z.coerce.number().min(0, "Price must be zero or positive"),
   description: z.string().optional(),
-  amenities: z.string().transform((val) => val.split(',').map(item => item.trim())),
+  // Fix #1: Modify this to transform the comma-separated string into a string array
+  amenities: z.string().transform((val) => val.split(',').map(item => item.trim()).filter(item => item !== '')),
   image_url: z.string().optional(),
   available: z.boolean().default(true)
 });
@@ -105,6 +105,7 @@ const SpacesTab = () => {
   };
 
   const handleEditSpace = (space: EventSpace) => {
+    // Fix #2: Convert the amenities array to a comma-separated string for editing
     form.reset({
       name: space.name,
       location: space.location,
@@ -122,6 +123,7 @@ const SpacesTab = () => {
 
   const onSubmit = async (values: z.infer<typeof spaceFormSchema>) => {
     try {
+      // Fix #3: The values.amenities is already transformed to a string[] by zod schema
       if (isAddMode) {
         const { error } = await supabase
           .from("event_spaces")

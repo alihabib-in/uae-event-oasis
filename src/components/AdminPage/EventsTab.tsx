@@ -3,36 +3,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Plus, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import EventsTable from "./events/EventsTable";
+import PackagesDialog from "./events/PackagesDialog";
+import DeleteEventDialog from "./events/DeleteEventDialog";
 
 interface EventsTabProps {
   onEditEvent: (event: any) => void;
@@ -261,147 +236,32 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Packages</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6">
-                      Loading events...
-                    </TableCell>
-                  </TableRow>
-                ) : events.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6">
-                      No events found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-medium">
-                        {event.title}
-                      </TableCell>
-                      <TableCell>
-                        {event.date ? format(new Date(event.date), "PPP") : "N/A"}
-                      </TableCell>
-                      <TableCell>{event.location}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            event.is_public
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {event.is_public ? "Public" : "Hidden"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center gap-1"
-                          onClick={() => handleViewPackages(event.id)}
-                        >
-                          <Package className="h-4 w-4" />
-                          <span>View</span>
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditEvent(event)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-500 hover:bg-red-50"
-                            onClick={() => handleDeleteEvent(event.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <EventsTable 
+            events={events}
+            isLoading={isLoading}
+            onViewPackages={handleViewPackages}
+            onEditEvent={handleEditEvent}
+            onDeleteEvent={handleDeleteEvent}
+          />
         </CardContent>
       </Card>
 
       {/* Packages Dialog */}
-      <Dialog open={!!viewingPackages} onOpenChange={() => setViewingPackages(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              Sponsorship Packages
-            </DialogTitle>
-            <DialogDescription>
-              Packages for {viewingPackages?.eventTitle}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-2">
-            {viewingPackages?.packages?.map((pkg: any) => (
-              <div key={pkg.id} className="border rounded-md p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-medium">{pkg.name}</h3>
-                  <Badge variant="outline">AED {pkg.price.toLocaleString()}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{pkg.description}</p>
-              </div>
-            ))}
-            {(!viewingPackages?.packages || viewingPackages.packages.length === 0) && (
-              <p className="text-center text-muted-foreground py-4">No packages found</p>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setViewingPackages(null)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {viewingPackages && (
+        <PackagesDialog 
+          isOpen={!!viewingPackages}
+          onClose={() => setViewingPackages(null)}
+          packages={viewingPackages.packages}
+          eventTitle={viewingPackages.eventTitle}
+        />
+      )}
       
       {/* Delete Event Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this event and all its associated sponsorship packages. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteEvent} className="bg-red-500 hover:bg-red-600">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteEventDialog 
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDeleteEvent}
+      />
     </>
   );
 };

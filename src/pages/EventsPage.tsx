@@ -1,5 +1,4 @@
 
-// Modifying the EventsPage to only fetch and show approved and public events
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -7,12 +6,10 @@ import Footer from "../components/Footer";
 import EventCard from "../components/EventCard";
 import EventsAIChatbot from "../components/EventsAIChatbot";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Calendar, Filter, Search, Tag, MessageSquare, Building, X } from "lucide-react";
+import { Calendar, Building, MessageSquare, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import EventFilters from "@/components/EventFilters";
 
 // Define the event type to fix typing issues
 interface Event {
@@ -180,10 +177,6 @@ const EventsPage = () => {
               </p>
             </div>
             <div className="mt-4 md:mt-0 flex gap-3">
-              <Button onClick={() => navigate("/rent-space")} variant="outline" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Rent Space
-              </Button>
               <Button onClick={() => navigate("/post-event")} className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Post Your Event
@@ -191,62 +184,17 @@ const EventsPage = () => {
             </div>
           </div>
           
-          <div className="bg-card/30 p-4 rounded-xl mb-8">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search events..."
-                  className="pl-9 dark-input"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2"
-                  onClick={clearFilters}
-                >
-                  <Filter className="h-4 w-4" />
-                  Clear Filters
-                </Button>
-              </div>
-            </div>
-            
-            <div>
-              <div className="mb-4">
-                <p className="text-sm font-medium mb-2">Categories</p>
-                <ToggleGroup type="single" className="justify-start flex-wrap" value={selectedCategory} onValueChange={setSelectedCategory}>
-                  {allCategories.map(category => (
-                    <ToggleGroupItem key={category} value={category} className="text-xs">
-                      {category}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
-              
-              {allTags.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Tags</p>
-                  <div className="flex flex-wrap gap-2">
-                    {allTags.map(tag => (
-                      <Badge 
-                        key={tag} 
-                        variant={selectedTags.includes(tag) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => handleTagToggle(tag)}
-                      >
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <EventFilters
+            categories={allCategories}
+            tags={allTags}
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+            selectedTags={selectedTags}
+            onSearchChange={setSearchQuery}
+            onCategoryChange={setSelectedCategory}
+            onTagToggle={handleTagToggle}
+            onClearFilters={clearFilters}
+          />
           
           <div>
             <Tabs defaultValue="upcoming" className="w-full mb-8">

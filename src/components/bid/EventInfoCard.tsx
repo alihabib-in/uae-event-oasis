@@ -10,9 +10,10 @@ interface EventInfoCardProps {
     min_bid: number;
     max_bid: number;
   };
+  packages?: any[];
 }
 
-const EventInfoCard = ({ event }: EventInfoCardProps) => {
+const EventInfoCard = ({ event, packages }: EventInfoCardProps) => {
   return (
     <div className="bg-card/30 rounded-xl p-6 space-y-4">
       <h2 className="text-xl font-medium">Event Information</h2>

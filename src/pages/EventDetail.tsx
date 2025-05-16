@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -97,7 +98,7 @@ const EventDetail = () => {
             </Badge>
           </div>
 
-          <EventInfoCard event={event} packages={packages} />
+          <EventInfoCard event={event} />
 
           <Card className="mb-4">
             <CardContent className="py-8">
@@ -130,8 +131,8 @@ const EventDetail = () => {
 
       <BidSubmissionDialog
         isOpen={showBidDialog}
-        onClose={handleBidDialogClose}
-        eventId={id}
+        onOpenChange={setShowBidDialog}
+        eventId={id || ""}
         eventTitle={event.title}
       />
     </div>

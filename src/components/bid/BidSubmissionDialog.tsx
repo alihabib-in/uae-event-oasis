@@ -19,9 +19,10 @@ interface BidSubmissionDialogProps {
   eventId: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  eventTitle?: string;
 }
 
-const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange }: BidSubmissionDialogProps) => {
+const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidSubmissionDialogProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [eventDetails, setEventDetails] = useState<any>(null);

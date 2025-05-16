@@ -167,7 +167,7 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
           body: {
             eventId: eventId,
             eventTitle: event.title,
-            recipientEmail: event.organizer_email || "info@example.com",
+            recipientEmail: event.organizer_email || "",
             recipientName: event.organizer_name || "Event Organizer",
           },
         });
@@ -210,7 +210,7 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
           body: {
             eventId: eventId,
             eventTitle: event.title,
-            recipientEmail: event.organizer_email || "info@example.com",
+            recipientEmail: event.organizer_email || "",
             recipientName: event.organizer_name || "Event Organizer",
           },
         });
@@ -285,7 +285,7 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                       <TableCell>
                         <Badge
                           variant={
-                            event.status === "approved" ? "success" :
+                            event.status === "approved" ? "default" :
                             event.status === "rejected" ? "destructive" :
                             "secondary"
                           }

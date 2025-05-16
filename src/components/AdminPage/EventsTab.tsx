@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
+import EventEditor from "@/components/EventEditor/EventEditor";
 
 interface EventsTabProps {
   onEditEvent: (event: any) => void;
@@ -49,6 +50,8 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
   } | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<any>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -94,8 +97,8 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
   };
 
   const handleEditEvent = (event: any) => {
-    // Pass the event to the parent component for editing
-    onEditEvent(event);
+    setCurrentEvent(event);
+    setIsEventEditorOpen(true);
   };
   
   const handleDeleteEvent = (eventId: string) => {
@@ -130,6 +133,11 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
       console.error("Error deleting event:", error);
       toast.error(`Failed to delete event: ${error.message}`);
     }
+  };
+
+  const handleEventUpdated = () => {
+    setIsEventEditorOpen(false);
+    fetchEvents();
   };
 
   return (
@@ -175,7 +183,6 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                   events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell className="font-medium">
-                        {/* Fixed: Changed from Link to Button with onClick to call handleEditEvent directly */}
                         <Button
                           variant="link"
                           className="p-0 h-auto font-medium text-left hover:text-primary hover:underline transition-colors"
@@ -307,6 +314,14 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Event Editor Dialog */}
+      <EventEditor
+        isOpen={isEventEditorOpen}
+        onClose={() => setIsEventEditorOpen(false)}
+        event={currentEvent}
+        onEventUpdated={handleEventUpdated}
+      />
     </>
   );
 };

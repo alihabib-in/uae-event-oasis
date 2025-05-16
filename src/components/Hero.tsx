@@ -1,34 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Building, Calendar, Users, Banknote, Award } from "lucide-react";
+import { ArrowRight, Calendar, Banknote, Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>("https://videos.pexels.com/video-files/10839348/10839348-uhd_2732_1440_30fps.mp4");
-  const [currentBrandIndex, setCurrentBrandIndex] = useState(0);
-  const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
-  
-  // Reduced to just 4 brands as requested
-  const brands = [
-    {
-      name: "Al Futtaim",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Majid_Al_Futtaim_logo.svg/2560px-Majid_Al_Futtaim_logo.svg.png"
-    },
-    {
-      name: "Emirates",
-      logo: "https://klairport.info/ap-content/uploads/emirates-airlines.png"
-    },
-    {
-      name: "Emaar",
-      logo: "https://i0.wp.com/achiever.ae/wp-content/uploads/2024/04/Emaar-Properties-Logo-e1713776008292.png?ssl=1"
-    },
-    {
-      name: "Dubai Holding",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Dubai_Holding_logo.svg/2560px-Dubai_Holding_logo.svg.png"
-    }
-  ];
   
   useEffect(() => {
     // Fetch hero video URL from admin settings
@@ -55,28 +33,6 @@ const Hero = () => {
     
     fetchSettings();
   }, []);
-
-  // Handle brand logo fade animation
-  useEffect(() => {
-    // Set up fade out/in cycle
-    const fadeOutTimer = setTimeout(() => {
-      if (fadeState === 'in') {
-        setFadeState('out');
-      }
-    }, 3000); // Show each brand for 3 seconds before fading out
-    
-    const changeLogoTimer = setTimeout(() => {
-      if (fadeState === 'out') {
-        setCurrentBrandIndex((prevIndex) => (prevIndex + 1) % brands.length);
-        setFadeState('in');
-      }
-    }, 3500); // Wait for fade out to complete before changing logo
-    
-    return () => {
-      clearTimeout(fadeOutTimer);
-      clearTimeout(changeLogoTimer);
-    };
-  }, [fadeState, brands.length]);
 
   return (
     <div className="hero-gradient min-h-[92vh] flex items-center relative overflow-hidden">
@@ -132,37 +88,6 @@ const Hero = () => {
               </div>
             </div>
             
-            {/* Brand logos section below the video */}
-            <div className="mt-4 bg-white/80 backdrop-blur-sm p-3 rounded-lg shadow-sm">
-              <p className="text-xs text-gray-700 mb-2 flex items-center gap-1">
-                <Users className="h-3 w-3 text-primary" />
-                <span className="font-semibold">200+ </span> 
-                organizers trust our platform
-              </p>
-              <div className="overflow-hidden h-12">
-                <div
-                  className={`flex items-center justify-center transition-opacity duration-500 h-12 ${
-                    fadeState === 'in' ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  <img 
-                    src={brands[currentBrandIndex].logo} 
-                    alt={brands[currentBrandIndex].name} 
-                    className="h-8 max-w-32 object-contain" 
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 w-64">
-              <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
-                5%
-              </div>
-              <div>
-                <p className="text-sm font-medium">Commission Fee</p>
-                <p className="text-xs text-muted-foreground">Transparent pricing</p>
-              </div>
-            </div>
             <div className="absolute -top-4 -right-4 bg-white p-3 rounded-xl shadow-md flex items-center">
               <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium flex items-center gap-1">
                 <Award className="h-3 w-3" />

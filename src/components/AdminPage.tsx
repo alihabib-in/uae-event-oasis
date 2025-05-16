@@ -10,6 +10,7 @@ import Navbar from "./Navbar";
 import AdminSettings from "./AdminSettings";
 import { LogOut, Settings, Home, Building, CalendarRange, MessageSquare } from "lucide-react";
 import { Button } from "./ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { cn } from "@/lib/utils";
 import { useAuth } from "./AuthProvider";
 import { toast } from "sonner";
@@ -60,74 +61,89 @@ const AdminPage = () => {
     }
   };
 
-  const tabs = [
-    { id: "events", label: "Events", icon: CalendarRange },
-    { id: "spaces", label: "Spaces", icon: Building },
-    { id: "space_requests", label: "Space Requests", icon: MessageSquare },
-    { id: "bids", label: "Bids", icon: MessageSquare },
-    { id: "settings", label: "Settings", icon: Settings }
-  ];
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <div className="flex-1 flex">
-        {/* Sidebar with vertical tabs */}
-        <div className="w-64 border-r bg-muted/30">
-          <div className="p-4 flex flex-col h-full">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <Button 
               variant="ghost" 
               onClick={() => navigate("/")}
-              className="justify-start mb-6"
+              className="flex items-center"
             >
               <Home className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
-            
-            <div className="space-y-1 flex-1">
-              {tabs.map((tab) => (
-                <Button 
-                  key={tab.id}
-                  variant={activeTab === tab.id ? "secondary" : "ghost"} 
-                  className={cn(
-                    "w-full justify-start",
-                    activeTab === tab.id ? "bg-muted" : ""
-                  )}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  <tab.icon className="h-4 w-4 mr-2" />
-                  {tab.label}
-                </Button>
-              ))}
-            </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="mt-auto"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign out
-            </Button>
           </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            className="flex items-center"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign out
+          </Button>
         </div>
         
-        {/* Main content area */}
-        <div className="flex-1 p-6 overflow-auto">
-          <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start mb-6 bg-background border rounded-md">
+            <TabsTrigger value="events" className="flex items-center">
+              <CalendarRange className="h-4 w-4 mr-2" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="spaces" className="flex items-center">
+              <Building className="h-4 w-4 mr-2" />
+              Spaces
+            </TabsTrigger>
+            <TabsTrigger value="space_requests" className="flex items-center">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Space Requests
+            </TabsTrigger>
+            <TabsTrigger value="bids" className="flex items-center">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Bids
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
           
-          {activeTab === "events" && <EventsTab onEditEvent={(event) => console.log(event)} />}
-          {activeTab === "spaces" && <SpacesTab />}
-          {activeTab === "space_requests" && <SpaceRequestsTab />}
-          {activeTab === "bids" && <BidsTab />}
-          {activeTab === "settings" && (
+          <TabsContent value="events">
+            <EventsTab onEditEvent={(event) => {
+              setEventToEdit(event);
+              console.log("Editing event:", event);
+              // This should open the event editor
+              const eventEditorElement = document.getElementById("event-editor");
+              if (eventEditorElement) {
+                eventEditorElement.setAttribute("data-state", "open");
+              }
+            }} />
+          </TabsContent>
+          
+          <TabsContent value="spaces">
+            <SpacesTab />
+          </TabsContent>
+          
+          <TabsContent value="space_requests">
+            <SpaceRequestsTab />
+          </TabsContent>
+          
+          <TabsContent value="bids">
+            <BidsTab />
+          </TabsContent>
+          
+          <TabsContent value="settings">
             <AdminSettings 
               settings={settings}
               onSettingsSaved={fetchSettings}
             />
-          )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

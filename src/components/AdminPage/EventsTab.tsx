@@ -94,13 +94,8 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
   };
 
   const handleEditEvent = (event: any) => {
-    console.log("Edit event clicked in EventsTab:", event);
-    // Ensure we're passing the full event object to the parent component
-    if (onEditEvent && typeof onEditEvent === 'function') {
-      onEditEvent(event);
-    } else {
-      console.error("onEditEvent is not a function or not provided");
-    }
+    // Pass the event to the parent component for editing
+    onEditEvent(event);
   };
   
   const handleDeleteEvent = (eventId: string) => {
@@ -180,16 +175,14 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                   events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell className="font-medium">
-                        <Link 
-                          to="#" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleEditEvent(event);
-                          }}
-                          className="hover:text-primary hover:underline transition-colors"
+                        {/* Fixed: Changed from Link to Button with onClick to call handleEditEvent directly */}
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto font-medium text-left hover:text-primary hover:underline transition-colors"
+                          onClick={() => handleEditEvent(event)}
                         >
                           {event.title}
-                        </Link>
+                        </Button>
                       </TableCell>
                       <TableCell>
                         {event.date ? format(new Date(event.date), "PPP") : "N/A"}

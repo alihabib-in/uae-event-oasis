@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ async function fetchOtpSettings() {
     
     if (error) {
       console.error("Error fetching OTP settings:", error);
-      return true; // Default to requiring OTP if there's an error
+      return false; // Default to NOT requiring OTP if there's an error
     }
     
     // Check if the field exists before accessing it
@@ -32,10 +33,10 @@ async function fetchOtpSettings() {
     // we need to check if the field exists as a dynamic property
     return data && 'require_otp_verification' in data 
       ? Boolean(data.require_otp_verification)
-      : true; // Default to requiring OTP
+      : false; // Default to NOT requiring OTP
   } catch (error) {
     console.error("Exception fetching OTP settings:", error);
-    return true; // Default to requiring OTP
+    return false; // Default to NOT requiring OTP
   }
 }
 
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [requireOtpVerification, setRequireOtpVerification] = useState(true);
+  const [requireOtpVerification, setRequireOtpVerification] = useState(false);
 
   // Fetch OTP settings when the component mounts
   useEffect(() => {
@@ -108,9 +109,9 @@ export const useAuth = () => {
   return context;
 };
 
-// Export the OTP settings functionality
+// Export the OTP settings functionality with default to not requiring OTP
 export const useOtpSettings = () => {
-  const [requireOtp, setRequireOtp] = useState<boolean>(true);
+  const [requireOtp, setRequireOtp] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {

@@ -9,7 +9,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import PhoneVerification from "@/components/PhoneVerification";
 
 interface VerificationDialogProps {
   isOpen: boolean;
@@ -22,11 +21,9 @@ interface VerificationDialogProps {
 const VerificationDialog = ({
   isOpen,
   onOpenChange,
-  phone,
-  bidId,
   onVerified,
 }: VerificationDialogProps) => {
-  // Simply auto-verify without OTP checks
+  // Auto-verify without OTP checks
   const handleSkipVerification = () => {
     onVerified();
     onOpenChange(false);
@@ -38,7 +35,7 @@ const VerificationDialog = ({
         <DialogHeader>
           <DialogTitle>Phone Verification Disabled</DialogTitle>
           <DialogDescription>
-            The admin has disabled phone verification. You can continue without verification.
+            The admin has disabled phone verification. Click continue to submit.
           </DialogDescription>
         </DialogHeader>
         
@@ -47,7 +44,7 @@ const VerificationDialog = ({
             onClick={handleSkipVerification}
             className="w-full"
           >
-            Continue Without Verification
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>

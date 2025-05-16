@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,16 +35,8 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Step, Steps } from "@/components/ui/steps";
-import PhoneVerification from "@/components/PhoneVerification";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 // Define the form schema with proper number conversion for numeric fields
 const formSchema = z.object({
@@ -98,8 +89,6 @@ const PostEventPage = () => {
   const { user } = useAuth();
   const [files, setFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [eventId, setEventId] = useState<string | null>(null);
-  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to login page if user is not authenticated
@@ -188,15 +177,13 @@ const PostEventPage = () => {
             organizer_name: values.organizerName,
             phone: values.organizerPhone,
             user_id: user.id,
+            phone_verified: true, // Auto-verify the phone
           },
         ])
         .select()
         .single();
       
       if (error) throw error;
-      
-      // Store the event ID for verification
-      setEventId(data.id);
       
       // Upload images if any
       if (files.length > 0) {
@@ -215,32 +202,24 @@ const PostEventPage = () => {
         }
       }
       
-      // Show verification modal
-      setIsVerificationModalOpen(true);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit event");
-      setIsSubmitting(false);
-    }
-  }
-  
-  const handlePhoneVerified = async () => {
-    try {
-      // Close the verification modal
-      setIsVerificationModalOpen(false);
-      
-      // Send admin notification
-      await supabase.functions.invoke("send-notification", {
-        body: {
-          type: "event_submission",
-          data: {
-            eventId,
-            eventName: form.getValues("eventName"),
-            organizerName: form.getValues("organizerName"),
-            organizerEmail: form.getValues("organizerEmail"),
-            organizerPhone: form.getValues("organizerPhone"),
-          }
-        },
-      });
+      try {
+        // Send admin notification
+        await supabase.functions.invoke("send-notification", {
+          body: {
+            type: "event_submission",
+            data: {
+              eventId: data.id,
+              eventName: values.eventName,
+              organizerName: values.organizerName,
+              organizerEmail: values.organizerEmail,
+              organizerPhone: values.organizerPhone,
+            }
+          },
+        });
+      } catch (notificationError) {
+        console.error("Error sending notification:", notificationError);
+        // Continue even if notification fails
+      }
       
       toast.success("Event submitted successfully! We'll review it and get back to you soon.");
       
@@ -249,11 +228,11 @@ const PostEventPage = () => {
         navigate("/");
       }, 1500);
     } catch (error: any) {
-      toast.error(error.message || "Failed to complete submission");
+      toast.error(error.message || "Failed to submit event");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = e.target.files;
@@ -638,25 +617,6 @@ const PostEventPage = () => {
           </Form>
         </div>
       </main>
-
-      <Dialog open={isVerificationModalOpen} onOpenChange={setIsVerificationModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Verify Your Phone Number</DialogTitle>
-            <DialogDescription>
-              We need to verify your phone number before submitting your event.
-            </DialogDescription>
-          </DialogHeader>
-          {eventId && (
-            <PhoneVerification
-              phone={form.getValues("organizerPhone")}
-              recordId={eventId}
-              tableType="events"
-              onVerified={handlePhoneVerified}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       <Footer />
     </div>

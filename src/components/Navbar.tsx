@@ -3,31 +3,28 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import Logo from "./Logo";
 import { navigationItems } from "@/data/navigationItems";
 import { ModeToggle } from "./ModeToggle";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthProvider";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [session, setSession] = useState<any>(null);
   const location = useLocation();
   const pathname = location.pathname;
-
+  const { user, signOut } = useAuth();
+  
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-  }, [])
+  const handleSignOut = async () => {
+    await signOut();
+    toggleMobileMenu();
+  };
   
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -54,7 +51,7 @@ const Navbar = () => {
             ))}
           </nav>
           <div className="flex items-center space-x-2">
-            {!session ? (
+            {!user ? (
               <>
                 <Link to="/login">
                   <Button variant="outline" size="sm">
@@ -72,6 +69,9 @@ const Navbar = () => {
                     My Account
                   </Button>
                 </Link>
+                <Button variant="ghost" size="sm" onClick={signOut} className="flex items-center">
+                  <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                </Button>
               </>
             )}
             <ModeToggle />
@@ -128,7 +128,7 @@ const Navbar = () => {
                   </div>
 
                   <div className="py-6">
-                    {!session ? (
+                    {!user ? (
                       <>
                         <Link
                           to="/login"
@@ -146,13 +146,21 @@ const Navbar = () => {
                         </Link>
                       </>
                     ) : (
-                      <Link
-                        to="/account"
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100"
-                        onClick={toggleMobileMenu}
-                      >
-                        My Account
-                      </Link>
+                      <>
+                        <Link
+                          to="/account"
+                          className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100"
+                          onClick={toggleMobileMenu}
+                        >
+                          My Account
+                        </Link>
+                        <button
+                          className="-mx-3 flex w-full items-center rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100"
+                          onClick={handleSignOut}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

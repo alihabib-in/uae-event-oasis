@@ -1,8 +1,12 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AnimatePresence, motion } from "framer-motion";
 
 const StatsSection = () => {
+  const [activeBrandIndex, setActiveBrandIndex] = useState(0);
+  
   const brands = [
     {
       name: "Emaar",
@@ -20,59 +24,62 @@ const StatsSection = () => {
       name: "Amazon",
       image: "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=250&h=250&fit=crop&auto=format&q=80",
     },
-    {
-      name: "Microsoft",
-      image: "https://images.unsplash.com/photo-1642068052428-838ef02e8bb8?w=250&h=250&fit=crop&auto=format&q=80",
-    },
-    {
-      name: "Adobe",
-      image: "https://images.unsplash.com/photo-1581287053822-fd7bf4f4bfec?w=250&h=250&fit=crop&auto=format&q=80",
-    },
-    {
-      name: "Coca-Cola",
-      image: "https://images.unsplash.com/photo-1629203432180-71e9b18d855c?w=250&h=250&fit=crop&auto=format&q=80",
-    },
-    {
-      name: "Adidas",
-      image: "https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=250&h=250&fit=crop&auto=format&q=80",
-    },
   ];
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveBrandIndex(prevIndex => (prevIndex + 1) % brands.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [brands.length]);
+
   return (
-    <section className="py-24 section-background relative overflow-hidden">
+    <section className="py-12 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="section-title">Trusted by Leading Brands</h2>
-          <p className="section-subtitle">
-            Over 200+ organizers and brands are finding success on sponsorby
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold">Trusted by Leading Brands</h2>
+          <p className="text-muted-foreground mt-2">
+            Top brands find success on sponsorby
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
-          {brands.map((brand, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <Avatar className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary/20 hover:border-primary/50 transition-all duration-300">
-                <AvatarImage src={brand.image} alt={brand.name} />
+        <div className="flex justify-center items-center h-32">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeBrandIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center"
+            >
+              <Avatar className="w-20 h-20 border-2 border-primary/20 hover:border-primary/50 transition-all duration-300">
+                <AvatarImage src={brands[activeBrandIndex].image} alt={brands[activeBrandIndex].name} />
                 <AvatarFallback className="bg-muted text-primary text-lg font-medium">
-                  {brand.name.substring(0, 2)}
+                  {brands[activeBrandIndex].name.substring(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <p className="mt-2 text-sm text-muted-foreground font-medium">
-                {brand.name}
+                {brands[activeBrandIndex].name}
               </p>
-            </div>
-          ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
         
-        <div className="mt-16 text-center">
-          <p className="text-xl font-medium text-primary">
-            Join our growing community of event organizers and brand sponsors
-          </p>
+        <div className="flex justify-center gap-2 mt-4">
+          {brands.map((_, index) => (
+            <button
+              key={index}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index === activeBrandIndex ? "bg-primary" : "bg-muted"
+              }`}
+              onClick={() => setActiveBrandIndex(index)}
+              aria-label={`Show brand ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
-
-      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-primary/5 rounded-full"></div>
-      <div className="absolute -top-20 -right-20 w-72 h-72 bg-secondary/5 rounded-full"></div>
     </section>
   );
 };

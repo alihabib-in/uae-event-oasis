@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, MapPinIcon, Banknote, Award } from "lucide-react";
+import { CalendarIcon, MapPinIcon, Banknote, Award, Users } from "lucide-react";
 
 export interface EventCardProps {
   event: {
@@ -15,6 +15,7 @@ export interface EventCardProps {
     max_bid: number;
     image?: string;
     is_public?: boolean;
+    attendees?: number;
   };
 }
 
@@ -34,7 +35,8 @@ const EventCard = ({ event }: EventCardProps) => {
     category = "Event",
     min_bid = 0,
     max_bid = 0,
-    image = "/placeholder.svg"
+    image = "/placeholder.svg",
+    attendees = 0
   } = event;
 
   // Make sure we have a valid ID before rendering the card
@@ -43,37 +45,51 @@ const EventCard = ({ event }: EventCardProps) => {
     return null;
   }
 
+  // Format date nicely
+  const formattedDate = new Date(date).toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
   return (
     <Link to={`/events/${id}`}>
-      <Card className="overflow-hidden group hover:shadow-xl transition-all duration-500 border-primary/10 h-full flex flex-col transform hover:-translate-y-1">
-        <div className="aspect-[16/9] relative h-40 overflow-hidden">
+      <Card className="overflow-hidden group hover:shadow-xl transition-all duration-500 border-primary/10 h-full flex flex-col transform hover:-translate-y-2 hover:border-primary/30">
+        <div className="aspect-[16/9] relative h-48 overflow-hidden">
           <img
             src={image || "/placeholder.svg"}
             alt={title}
-            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
-          <Badge className="absolute top-2 right-2 bg-primary hover:bg-primary text-white rounded-full py-1 px-3 text-xs shadow-md">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          <Badge className="absolute top-3 right-3 bg-primary hover:bg-primary text-white rounded-full py-1 px-3 text-xs shadow-md">
             {category}
           </Badge>
-          <div className="absolute bottom-0 left-0 right-0 p-3">
-            <h3 className="text-lg font-bold text-white mb-1 leading-tight text-balance tracking-tight font-grotesk line-clamp-2 drop-shadow-md">
+          <div className="absolute top-3 left-3">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-xs font-medium shadow-sm">
+              {formattedDate}
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <h3 className="text-lg font-bold text-white mb-1 leading-tight tracking-tight font-grotesk line-clamp-2 drop-shadow-md">
               {title}
             </h3>
-          </div>
-        </div>
-        <CardContent className="pt-3 pb-2 flex-grow">
-          <div className="flex flex-col gap-2 mt-1">
-            <div className="flex items-center text-muted-foreground text-xs">
-              <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-primary" />
-              <span>{new Date(date).toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center text-muted-foreground text-xs">
-              <MapPinIcon className="h-3.5 w-3.5 mr-1.5 text-accent" />
+            <div className="flex items-center text-white/80 text-xs">
+              <MapPinIcon className="h-3.5 w-3.5 mr-1" />
               <p className="truncate">{location}</p>
             </div>
           </div>
+        </div>
+        
+        <CardContent className="pt-4 pb-3 flex-grow">
+          {attendees > 0 && (
+            <div className="flex items-center text-muted-foreground text-xs mb-2">
+              <Users className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
+              <span>{attendees.toLocaleString()} attendees</span>
+            </div>
+          )}
         </CardContent>
+        
         <CardFooter className="border-t border-primary/5 pt-3 pb-3 bg-muted/10">
           <div className="w-full flex items-center gap-2">
             <Banknote className="h-4 w-4 text-primary" />
@@ -81,7 +97,7 @@ const EventCard = ({ event }: EventCardProps) => {
               AED {min_bid.toLocaleString()} - {max_bid.toLocaleString()}
             </p>
             <div className="ml-auto">
-              <Badge variant="outline" className="bg-primary/5 border-primary/10 text-xs">
+              <Badge variant="outline" className="bg-primary/5 border-primary/10 text-xs flex items-center">
                 <Award className="h-3 w-3 mr-1" /> Sponsor
               </Badge>
             </div>

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, LogIn } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Form } from "@/components/ui/form";
@@ -16,10 +16,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
 import VerificationDialog from "@/components/bid/VerificationDialog";
+import { useAuth } from "@/components/AuthProvider";
 
 const SubmitBidPage = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [verifiedPhone, setVerifiedPhone] = useState("");
@@ -50,6 +52,46 @@ const SubmitBidPage = () => {
       website: "",
     },
   });
+
+  // Redirect to login page if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="max-w-md w-full space-y-8 text-center">
+            <div>
+              <h2 className="text-3xl font-extrabold">Authentication Required</h2>
+              <p className="mt-2 text-muted-foreground">
+                You need to be signed in to submit a bid
+              </p>
+            </div>
+            <div className="flex flex-col space-y-4">
+              <Button 
+                onClick={() => navigate("/login")} 
+                size="lg"
+                className="w-full"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto" 
+                  onClick={() => navigate("/login")}
+                >
+                  Sign up
+                </Button>
+              </p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   useEffect(() => {
     const fetchEvent = async () => {

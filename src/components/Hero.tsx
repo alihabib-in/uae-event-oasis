@@ -103,45 +103,9 @@ const Hero = () => {
                 </Link>
               </Button>
             </div>
-            
-            <div className="flex flex-wrap gap-4 mt-8">
-              <Button variant="ghost" className="hover:bg-muted/20 flex items-center gap-2" asChild>
-                <Link to="/for-brands">
-                  <Building className="h-4 w-4" />
-                  For Brands
-                </Link>
-              </Button>
-              <Button variant="ghost" className="hover:bg-muted/20 flex items-center gap-2" asChild>
-                <Link to="/for-organizers">
-                  <Users className="h-4 w-4" />
-                  For Organizers
-                </Link>
-              </Button>
-            </div>
-            
-            <div className="mt-12 max-w-md">
-              <p className="text-sm text-gray-700 mb-2 flex items-center gap-1">
-                <Users className="h-4 w-4 text-primary" />
-                <span className="font-semibold text-foreground">200+ </span> 
-                organizers trust our platform
-              </p>
-              <div className="overflow-hidden h-12">
-                <div
-                  className={`flex items-center justify-center transition-opacity duration-500 h-12 ${
-                    fadeState === 'in' ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  <img 
-                    src={brands[currentBrandIndex].logo} 
-                    alt={brands[currentBrandIndex].name} 
-                    className="h-8 max-w-32 object-contain" 
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           
-          <div className="lg:col-span-2 relative animate-scale-in mt-8 lg:mt-0">
+          <div className="lg:col-span-2 relative animate-scale-in">
             <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
               {/* Video content */}
               <video 
@@ -167,6 +131,29 @@ const Hero = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Brand logos section below the video */}
+            <div className="mt-4 bg-white/80 backdrop-blur-sm p-3 rounded-lg shadow-sm">
+              <p className="text-xs text-gray-700 mb-2 flex items-center gap-1">
+                <Users className="h-3 w-3 text-primary" />
+                <span className="font-semibold">200+ </span> 
+                organizers trust our platform
+              </p>
+              <div className="overflow-hidden h-12">
+                <div
+                  className={`flex items-center justify-center transition-opacity duration-500 h-12 ${
+                    fadeState === 'in' ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <img 
+                    src={brands[currentBrandIndex].logo} 
+                    alt={brands[currentBrandIndex].name} 
+                    className="h-8 max-w-32 object-contain" 
+                  />
+                </div>
+              </div>
+            </div>
+            
             <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 w-64">
               <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
                 5%

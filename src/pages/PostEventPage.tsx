@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -30,7 +31,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Upload, Trash2 } from "lucide-react";
+import { CalendarIcon, Upload, Trash2, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -100,6 +101,46 @@ const PostEventPage = () => {
   const [eventId, setEventId] = useState<string | null>(null);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect to login page if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="max-w-md w-full space-y-8 text-center">
+            <div>
+              <h2 className="text-3xl font-extrabold">Authentication Required</h2>
+              <p className="mt-2 text-muted-foreground">
+                You need to be signed in to post an event
+              </p>
+            </div>
+            <div className="flex flex-col space-y-4">
+              <Button 
+                onClick={() => navigate("/login")} 
+                size="lg"
+                className="w-full"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto" 
+                  onClick={() => navigate("/login")}
+                >
+                  Sign up
+                </Button>
+              </p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

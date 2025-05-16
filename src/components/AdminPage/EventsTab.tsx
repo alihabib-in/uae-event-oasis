@@ -40,8 +40,26 @@ interface EventsTabProps {
   onEditEvent: (event: any) => void;
 }
 
+// Define the Event interface to match our database schema
+interface Event {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  status: string;
+  is_public: boolean;
+  organizer_name?: string;
+  organizer_email?: string; // Add this property as optional
+  venue?: string;
+  category?: string;
+  description?: string;
+  image?: string;
+  created_at: string;
+  // Add other properties as needed
+}
+
 const EventsTab = ({ onEditEvent }: EventsTabProps) => {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewingPackages, setViewingPackages] = useState<{
     eventId: string;

@@ -68,10 +68,6 @@ const EventDetail = () => {
     setShowBidDialog(true);
   };
 
-  const handleBidDialogClose = () => {
-    setShowBidDialog(false);
-  };
-
   if (loading) {
     return <div>Loading event details...</div>;
   }
@@ -98,7 +94,7 @@ const EventDetail = () => {
             </Badge>
           </div>
 
-          <EventInfoCard event={event} />
+          <EventInfoCard event={event} packages={packages} />
 
           <Card className="mb-4">
             <CardContent className="py-8">

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Package, Edit, Trash2, ExternalLink, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +97,7 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
   };
 
   const handleEditEvent = (event: any) => {
+    console.log("Opening event editor for:", event);
     setCurrentEvent(event);
     setIsEventEditorOpen(true);
   };
@@ -138,6 +139,92 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
   const handleEventUpdated = () => {
     setIsEventEditorOpen(false);
     fetchEvents();
+  };
+
+  const handleApproveEvent = async (eventId: string) => {
+    try {
+      const { data: event, error: fetchError } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const { error } = await supabase
+        .from('events')
+        .update({
+          status: 'approved',
+          is_public: true
+        })
+        .eq('id', eventId);
+        
+      if (error) throw error;
+      
+      // Send email notification to the event organizer
+      try {
+        await supabase.functions.invoke("send-event-approval-email", {
+          body: {
+            eventId: eventId,
+            eventTitle: event.title,
+            recipientEmail: event.organizer_email || "info@example.com",
+            recipientName: event.organizer_name || "Event Organizer",
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending approval email:", emailError);
+        // Continue even if email sending fails
+      }
+      
+      toast.success("Event approved successfully");
+      fetchEvents();
+    } catch (error: any) {
+      console.error('Error approving event:', error);
+      toast.error(`Error approving event: ${error.message}`);
+    }
+  };
+  
+  const handleRejectEvent = async (eventId: string) => {
+    try {
+      const { data: event, error: fetchError } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const { error } = await supabase
+        .from('events')
+        .update({
+          status: 'rejected',
+          is_public: false
+        })
+        .eq('id', eventId);
+        
+      if (error) throw error;
+      
+      // Send email notification to the event organizer about rejection
+      try {
+        await supabase.functions.invoke("send-event-rejection-email", {
+          body: {
+            eventId: eventId,
+            eventTitle: event.title,
+            recipientEmail: event.organizer_email || "info@example.com",
+            recipientName: event.organizer_name || "Event Organizer",
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending rejection email:", emailError);
+        // Continue even if email sending fails
+      }
+      
+      toast.success("Event rejected");
+      fetchEvents();
+    } catch (error: any) {
+      console.error('Error rejecting event:', error);
+      toast.error(`Error rejecting event: ${error.message}`);
+    }
   };
 
   return (
@@ -198,12 +285,14 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                       <TableCell>
                         <Badge
                           variant={
-                            event.is_public
-                              ? "default"
-                              : "secondary"
+                            event.status === "approved" ? "success" :
+                            event.status === "rejected" ? "destructive" :
+                            "secondary"
                           }
                         >
-                          {event.is_public ? "Public" : "Hidden"}
+                          {event.status === "approved" ? "Approved" :
+                           event.status === "rejected" ? "Rejected" :
+                           "Pending"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -219,6 +308,26 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {event.status === "pending" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleApproveEvent(event.id)}
+                                className="text-green-500 hover:bg-green-50"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRejectEvent(event.id)}
+                                className="text-red-500 hover:bg-red-50"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"

@@ -6,7 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import PhoneVerification from "@/components/PhoneVerification";
 
 interface VerificationDialogProps {
@@ -24,23 +26,30 @@ const VerificationDialog = ({
   bidId,
   onVerified,
 }: VerificationDialogProps) => {
+  // Simply auto-verify without OTP checks
+  const handleSkipVerification = () => {
+    onVerified();
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] bg-card/95 backdrop-blur-sm border border-white/10">
         <DialogHeader>
-          <DialogTitle>Verify Your Phone Number</DialogTitle>
+          <DialogTitle>Phone Verification Disabled</DialogTitle>
           <DialogDescription>
-            We need to verify your phone number before submitting your bid.
+            The admin has disabled phone verification. You can continue without verification.
           </DialogDescription>
         </DialogHeader>
-        {bidId && (
-          <PhoneVerification
-            phone={phone}
-            recordId={bidId}
-            tableType="bids"
-            onVerified={onVerified}
-          />
-        )}
+        
+        <DialogFooter>
+          <Button 
+            onClick={handleSkipVerification}
+            className="w-full"
+          >
+            Continue Without Verification
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

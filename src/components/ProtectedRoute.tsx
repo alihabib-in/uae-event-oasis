@@ -1,7 +1,8 @@
 
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
+import { toast } from "sonner";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,6 +11,14 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, isLoading, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!isLoading && requiredRole === "admin" && user && !isAdmin) {
+      toast.error("You don't have permission to access this page");
+      navigate("/");
+    }
+  }, [isLoading, user, isAdmin, requiredRole, navigate]);
   
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;

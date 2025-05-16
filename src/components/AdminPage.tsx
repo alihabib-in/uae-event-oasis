@@ -11,12 +11,23 @@ import AdminSettings from "./AdminSettings";
 import { LogOut, Settings, Home, Building, CalendarRange, MessageSquare } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "./AuthProvider";
+import { toast } from "sonner";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("events");
   const [settings, setSettings] = useState<any>(null);
   const [eventToEdit, setEventToEdit] = useState<any>(null);
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (user && !isAdmin) {
+      toast.error("You don't have permission to access the admin page");
+      navigate("/");
+    }
+  }, [user, isAdmin, navigate]);
 
   useEffect(() => {
     fetchSettings();

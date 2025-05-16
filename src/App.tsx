@@ -43,7 +43,11 @@ function App() {
               <Route path="/rent-space" element={<RentSpacePage />} />
               
               {/* Protected routes */}
-              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminPage />
+                </ProtectedRoute>
+              } />
               <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
               
               {/* Not found route */}

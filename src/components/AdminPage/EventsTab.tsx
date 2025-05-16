@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Plus, Trash2 } from "lucide-react";
+import { Package, Edit, Trash2, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Link } from "react-router-dom";
 
 interface EventsTabProps {
   onEditEvent: (event: any) => void;
@@ -135,114 +136,6 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
       toast.error(`Failed to delete event: ${error.message}`);
     }
   };
-  
-  const addSampleEvents = async () => {
-    setIsLoading(true);
-    try {
-      const sampleEvents = [
-        {
-          title: "Tech Conference 2025",
-          date: new Date("2025-09-15").toISOString(),
-          end_date: new Date("2025-09-17").toISOString(),
-          location: "Dubai",
-          venue: "Dubai World Trade Centre",
-          description: "Annual conference featuring the latest in technology and innovation",
-          category: "Technology",
-          organizer_name: "TechEvents UAE",
-          attendees: 2000,
-          min_bid: 5000,
-          max_bid: 50000,
-          phone: "+971501234567",
-          is_public: true,
-          tags: ["technology", "innovation", "networking"]
-        },
-        {
-          title: "Fashion Week Dubai",
-          date: new Date("2025-11-10").toISOString(),
-          end_date: new Date("2025-11-15").toISOString(),
-          location: "Dubai",
-          venue: "Dubai Design District",
-          description: "Showcasing the latest trends in fashion from local and international designers",
-          category: "Fashion",
-          organizer_name: "Dubai Fashion Council",
-          attendees: 1500,
-          min_bid: 10000,
-          max_bid: 100000,
-          phone: "+971502345678",
-          is_public: true,
-          tags: ["fashion", "design", "runway"]
-        },
-        {
-          title: "UAE Food Festival",
-          date: new Date("2025-03-05").toISOString(),
-          end_date: new Date("2025-03-15").toISOString(),
-          location: "Abu Dhabi",
-          venue: "Yas Island",
-          description: "Celebrating the diverse culinary scene across the UAE",
-          category: "Food & Beverage",
-          organizer_name: "UAE Culinary Guild",
-          attendees: 5000,
-          min_bid: 3000,
-          max_bid: 30000,
-          phone: "+971503456789",
-          is_public: true,
-          tags: ["food", "culinary", "festival"]
-        }
-      ];
-      
-      // Insert sample events
-      const { data: eventsData, error: eventsError } = await supabase
-        .from("events")
-        .insert(sampleEvents)
-        .select();
-        
-      if (eventsError) throw eventsError;
-      
-      // If events were created successfully, add sample packages for each event
-      if (eventsData && eventsData.length > 0) {
-        const samplePackages = [];
-        
-        for (const event of eventsData) {
-          // Create basic packages for each event
-          samplePackages.push(
-            {
-              name: "Silver Sponsor",
-              description: "Logo placement, small booth space",
-              price: Math.round(event.min_bid * 1.2),
-              event_id: event.id
-            },
-            {
-              name: "Gold Sponsor",
-              description: "Premium logo placement, medium booth, speaking opportunity",
-              price: Math.round(event.min_bid * 2),
-              event_id: event.id
-            },
-            {
-              name: "Platinum Sponsor",
-              description: "VIP benefits, large booth, multiple speaking slots, exclusive branding",
-              price: Math.round(event.min_bid * 3),
-              event_id: event.id
-            }
-          );
-        }
-        
-        // Insert sample packages
-        const { error: packagesError } = await supabase
-          .from("sponsorship_packages")
-          .insert(samplePackages);
-          
-        if (packagesError) throw packagesError;
-      }
-      
-      toast.success("Sample events added successfully");
-      fetchEvents();
-    } catch (error: any) {
-      console.error("Error adding sample events:", error);
-      toast.error(`Failed to add sample events: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <>
@@ -255,9 +148,6 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                 Manage events posted on the platform
               </CardDescription>
             </div>
-            <Button onClick={addSampleEvents} className="flex items-center gap-1">
-              <Plus className="h-4 w-4" /> Add Sample Events
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -290,7 +180,16 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                   events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell className="font-medium">
-                        {event.title}
+                        <Link 
+                          to="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleEditEvent(event);
+                          }}
+                          className="hover:text-primary hover:underline transition-colors"
+                        >
+                          {event.title}
+                        </Link>
                       </TableCell>
                       <TableCell>
                         {event.date ? format(new Date(event.date), "PPP") : "N/A"}
@@ -324,8 +223,10 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditEvent(event)}
+                            className="flex items-center gap-1"
                           >
-                            Edit
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
                           </Button>
                           <Button
                             variant="outline"
@@ -334,6 +235,17 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
                             onClick={() => handleDeleteEvent(event.id)}
                           >
                             <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            asChild
+                          >
+                            <Link to={`/events/${event.id}`} target="_blank">
+                              <ExternalLink className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:inline-block md:ml-1">View</span>
+                            </Link>
                           </Button>
                         </div>
                       </TableCell>

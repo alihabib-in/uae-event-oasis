@@ -46,15 +46,25 @@ interface Event {
   title: string;
   date: string;
   location: string;
+  venue: string;
   status: string;
+  category: string;
   is_public: boolean;
-  organizer_name?: string;
-  organizer_email?: string; // Add this property as optional
-  venue?: string;
-  category?: string;
+  organizer_name: string;
+  organizer_email?: string;
   description?: string;
   image?: string;
+  attendees: number;
+  min_bid: number;
+  max_bid: number;
   created_at: string;
+  end_date?: string | null;
+  phone: string;
+  phone_verified?: boolean;
+  verification_code?: string;
+  user_id?: string;
+  sponsorship_details?: string[] | null;
+  tags?: string[] | null;
   // Add other properties as needed
 }
 

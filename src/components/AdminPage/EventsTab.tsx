@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -51,7 +50,7 @@ interface Event {
   category: string;
   is_public: boolean;
   organizer_name: string;
-  organizer_email?: string;
+  organizer_email: string; // Make it non-optional to match Supabase schema
   description?: string;
   image?: string;
   attendees: number;
@@ -65,7 +64,6 @@ interface Event {
   user_id?: string;
   sponsorship_details?: string[] | null;
   tags?: string[] | null;
-  // Add other properties as needed
 }
 
 const EventsTab = ({ onEditEvent }: EventsTabProps) => {
@@ -190,18 +188,23 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
       if (error) throw error;
       
       // Send email notification to the event organizer
-      try {
-        await supabase.functions.invoke("send-event-approval-email", {
-          body: {
-            eventId: eventId,
-            eventTitle: event.title,
-            recipientEmail: event.organizer_email || "",
-            recipientName: event.organizer_name || "Event Organizer",
-          },
-        });
-      } catch (emailError) {
-        console.error("Error sending approval email:", emailError);
-        // Continue even if email sending fails
+      // Handle case where organizer_email might be null or undefined
+      if (event && event.organizer_email) {
+        try {
+          await supabase.functions.invoke("send-event-approval-email", {
+            body: {
+              eventId: eventId,
+              eventTitle: event.title,
+              recipientEmail: event.organizer_email,
+              recipientName: event.organizer_name || "Event Organizer",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending approval email:", emailError);
+          // Continue even if email sending fails
+        }
+      } else {
+        console.log("No organizer email found for event:", eventId);
       }
       
       toast.success("Event approved successfully");
@@ -233,18 +236,23 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
       if (error) throw error;
       
       // Send email notification to the event organizer about rejection
-      try {
-        await supabase.functions.invoke("send-event-rejection-email", {
-          body: {
-            eventId: eventId,
-            eventTitle: event.title,
-            recipientEmail: event.organizer_email || "",
-            recipientName: event.organizer_name || "Event Organizer",
-          },
-        });
-      } catch (emailError) {
-        console.error("Error sending rejection email:", emailError);
-        // Continue even if email sending fails
+      // Handle case where organizer_email might be null or undefined
+      if (event && event.organizer_email) {
+        try {
+          await supabase.functions.invoke("send-event-rejection-email", {
+            body: {
+              eventId: eventId,
+              eventTitle: event.title,
+              recipientEmail: event.organizer_email,
+              recipientName: event.organizer_name || "Event Organizer",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending rejection email:", emailError);
+          // Continue even if email sending fails
+        }
+      } else {
+        console.log("No organizer email found for event:", eventId);
       }
       
       toast.success("Event rejected");

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -50,7 +51,7 @@ interface Event {
   category: string;
   is_public: boolean;
   organizer_name: string;
-  organizer_email: string; // Make it non-optional to match Supabase schema
+  organizer_email?: string; // Make it optional since it might not always be present
   description?: string;
   image?: string;
   attendees: number;
@@ -92,7 +93,8 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEvents(data || []);
+      // Use type assertion to handle potential missing fields
+      setEvents((data || []) as Event[]);
     } catch (error: any) {
       console.error("Error fetching events:", error);
       toast.error(`Failed to load events: ${error.message}`);
@@ -187,16 +189,18 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
         
       if (error) throw error;
       
+      // Cast the event to match our interface
+      const typedEvent = event as unknown as Event;
+      
       // Send email notification to the event organizer
-      // Handle case where organizer_email might be null or undefined
-      if (event && event.organizer_email) {
+      if (typedEvent && typedEvent.organizer_email) {
         try {
           await supabase.functions.invoke("send-event-approval-email", {
             body: {
               eventId: eventId,
-              eventTitle: event.title,
-              recipientEmail: event.organizer_email,
-              recipientName: event.organizer_name || "Event Organizer",
+              eventTitle: typedEvent.title,
+              recipientEmail: typedEvent.organizer_email,
+              recipientName: typedEvent.organizer_name || "Event Organizer",
             },
           });
         } catch (emailError) {
@@ -235,16 +239,18 @@ const EventsTab = ({ onEditEvent }: EventsTabProps) => {
         
       if (error) throw error;
       
+      // Cast the event to match our interface
+      const typedEvent = event as unknown as Event;
+      
       // Send email notification to the event organizer about rejection
-      // Handle case where organizer_email might be null or undefined
-      if (event && event.organizer_email) {
+      if (typedEvent && typedEvent.organizer_email) {
         try {
           await supabase.functions.invoke("send-event-rejection-email", {
             body: {
               eventId: eventId,
-              eventTitle: event.title,
-              recipientEmail: event.organizer_email,
-              recipientName: event.organizer_name || "Event Organizer",
+              eventTitle: typedEvent.title,
+              recipientEmail: typedEvent.organizer_email,
+              recipientName: typedEvent.organizer_name || "Event Organizer",
             },
           });
         } catch (emailError) {

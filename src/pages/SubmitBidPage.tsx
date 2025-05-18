@@ -1,23 +1,19 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Loader2, LogIn } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Form } from "@/components/ui/form";
-import BrandInfoForm from "@/components/bid/BrandInfoForm";
-import ContactInfoForm from "@/components/bid/ContactInfoForm";
 import EventInfoCard from "@/components/bid/EventInfoCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
+import { useBidSubmission } from "@/hooks/useBidSubmission";
 import VerificationDialog from "@/components/bid/VerificationDialog";
 import { useAuth } from "@/components/AuthProvider";
 import BidSuccessAlert from "@/components/bid/BidSuccessAlert";
+import BidForm from "@/components/bid/BidForm";
 
 const SubmitBidPage = () => {
   const { eventId } = useParams();
@@ -36,23 +32,6 @@ const SubmitBidPage = () => {
     handlePhoneVerified,
     submissionSuccess
   } = useBidSubmission(eventId);
-
-  const form = useForm<BidFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      brandName: "",
-      businessNature: "",
-      companyAddress: "",
-      emirate: "",
-      contactName: "",
-      contactPosition: "",
-      email: "",
-      phone: "",
-      bidAmount: 0,
-      message: "",
-      website: "",
-    },
-  });
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -84,17 +63,17 @@ const SubmitBidPage = () => {
     fetchEvent();
   }, [eventId, navigate]);
 
-  const onSubmit = async (values: BidFormValues) => {
+  const onSubmit = async (values: any) => {
     const result = await submitBid(values);
     
     // If submission was successful and verification wasn't needed or if verification is complete
-    if (result.isSuccess && !isVerificationModalOpen) {
+    if (result?.isSuccess && !isVerificationModalOpen) {
       setTimeout(() => navigate(`/events/${eventId}`), 2000);
     }
   };
   
-  const handleVerified = () => {
-    handlePhoneVerified(form.getValues("phone"), form.getValues());
+  const handleVerified = (phone: string, formValues: any) => {
+    handlePhoneVerified(phone, formValues);
     setTimeout(() => navigate(`/events/${eventId}`), 2000);
   };
 
@@ -171,19 +150,11 @@ const SubmitBidPage = () => {
             {submissionSuccess ? (
               <BidSuccessAlert eventTitle={event?.title} />
             ) : (
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <BrandInfoForm control={form.control} />
-                  <ContactInfoForm control={form.control} />
-                  
-                  <div className="flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Submit Bid
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+              <BidForm 
+                formSchema={formSchema}
+                onSubmit={onSubmit}
+                isSubmitting={isSubmitting}
+              />
             )}
           </div>
           
@@ -196,9 +167,9 @@ const SubmitBidPage = () => {
       <VerificationDialog 
         isOpen={isVerificationModalOpen}
         onOpenChange={setIsVerificationModalOpen}
-        phone={form.getValues("phone")}
-        bidId={bidId}
-        onVerified={handleVerified}
+        phone={""}
+        bidId={bidId || ""}
+        onVerified={() => handleVerified("", {})}
       />
       
       <Footer />

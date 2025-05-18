@@ -9,10 +9,11 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import DetailsTab from "./DetailsTab";
 import PackagesTab from "./PackagesTab";
+import TargetAudienceTab from "./TargetAudienceTab";
+import HistoryTab from "./HistoryTab";
+import MarketingTab from "./MarketingTab";
 
 interface EventEditorProps {
   isOpen: boolean;
@@ -23,13 +24,11 @@ interface EventEditorProps {
 
 const EventEditor = ({ isOpen, onClose, event, onEventUpdated }: EventEditorProps) => {
   const [activeTab, setActiveTab] = useState("details");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Reset to details tab when dialog opens
     if (isOpen) {
       setActiveTab("details");
-      console.log("EventEditor opened with event:", event);
     }
   }, [isOpen, event]);
 
@@ -53,9 +52,16 @@ const EventEditor = ({ isOpen, onClose, event, onEventUpdated }: EventEditorProp
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full mb-6">
+          <TabsList className="w-full mb-6 flex flex-wrap h-auto py-2">
             <TabsTrigger value="details" className="flex-1">Event Details</TabsTrigger>
-            {event && event.id && <TabsTrigger value="packages" className="flex-1">Sponsorship Packages</TabsTrigger>}
+            {event && event.id && (
+              <>
+                <TabsTrigger value="packages" className="flex-1">Sponsorship</TabsTrigger>
+                <TabsTrigger value="target_audience" className="flex-1">Target Audience</TabsTrigger>
+                <TabsTrigger value="history" className="flex-1">History</TabsTrigger>
+                <TabsTrigger value="marketing" className="flex-1">Marketing</TabsTrigger>
+              </>
+            )}
           </TabsList>
           
           <TabsContent value="details" className="space-y-6">
@@ -70,6 +76,27 @@ const EventEditor = ({ isOpen, onClose, event, onEventUpdated }: EventEditorProp
             <PackagesTab 
               eventId={event?.id} 
               onClose={onClose} 
+            />
+          </TabsContent>
+
+          <TabsContent value="target_audience" className="space-y-6">
+            <TargetAudienceTab 
+              event={event}
+              onClose={onClose} 
+            />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-6">
+            <HistoryTab
+              event={event}
+              onClose={onClose}
+            />
+          </TabsContent>
+
+          <TabsContent value="marketing" className="space-y-6">
+            <MarketingTab
+              event={event}
+              onClose={onClose}
             />
           </TabsContent>
         </Tabs>

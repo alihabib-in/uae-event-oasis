@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
 import VerificationDialog from "@/components/bid/VerificationDialog";
 import { useAuth } from "@/components/AuthProvider";
+import BidSuccessAlert from "@/components/bid/BidSuccessAlert";
 
 const SubmitBidPage = () => {
   const { eventId } = useParams();
@@ -24,7 +25,6 @@ const SubmitBidPage = () => {
   const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [verifiedPhone, setVerifiedPhone] = useState("");
   
   const {
     formSchema,
@@ -33,7 +33,8 @@ const SubmitBidPage = () => {
     bidId,
     isVerificationModalOpen,
     setIsVerificationModalOpen,
-    handlePhoneVerified
+    handlePhoneVerified,
+    submissionSuccess
   } = useBidSubmission(eventId);
 
   const form = useForm<BidFormValues>({
@@ -52,6 +53,58 @@ const SubmitBidPage = () => {
       website: "",
     },
   });
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      if (!eventId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select("*")
+          .eq("id", eventId)
+          .single();
+
+        if (error) throw error;
+        if (!data) {
+          toast.error("Event not found");
+          navigate("/events");
+          return;
+        }
+
+        setEvent(data);
+      } catch (error: any) {
+        toast.error(error.message || "Failed to load event");
+        navigate("/events");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [eventId, navigate]);
+
+  const onSubmit = async (values: BidFormValues) => {
+    const result = await submitBid(values);
+    
+    // If submission was successful and verification wasn't needed or if verification is complete
+    if (result.isSuccess && !isVerificationModalOpen) {
+      setTimeout(() => navigate(`/events/${eventId}`), 2000);
+    }
+  };
+  
+  const handleVerified = () => {
+    handlePhoneVerified(form.getValues("phone"), form.getValues());
+    setTimeout(() => navigate(`/events/${eventId}`), 2000);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   // Redirect to login page if user is not authenticated
   if (!user) {
@@ -93,58 +146,6 @@ const SubmitBidPage = () => {
     );
   }
 
-  useEffect(() => {
-    const fetchEvent = async () => {
-      if (!eventId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (error) throw error;
-        if (!data) {
-          toast.error("Event not found");
-          navigate("/events");
-          return;
-        }
-
-        setEvent(data);
-      } catch (error: any) {
-        toast.error(error.message || "Failed to load event");
-        navigate("/events");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEvent();
-  }, [eventId, navigate]);
-
-  const onSubmit = async (values: BidFormValues) => {
-    await submitBid(values);
-    
-    // If verification dialog wasn't opened, the submission was successful (skipped verification)
-    if (bidId && !isVerificationModalOpen) {
-      setTimeout(() => navigate(`/events/${eventId}`), 2000);
-    }
-  };
-  
-  const handleVerified = () => {
-    handlePhoneVerified(form.getValues("phone"), form.getValues());
-    setTimeout(() => navigate(`/events/${eventId}`), 2000);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -167,19 +168,23 @@ const SubmitBidPage = () => {
               </p>
             </div>
             
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <BrandInfoForm control={form.control} />
-                <ContactInfoForm control={form.control} />
-                
-                <div className="flex justify-end">
-                  <Button type="submit" size="lg" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Submit Bid
-                  </Button>
-                </div>
-              </form>
-            </Form>
+            {submissionSuccess ? (
+              <BidSuccessAlert eventTitle={event?.title} />
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <BrandInfoForm control={form.control} />
+                  <ContactInfoForm control={form.control} />
+                  
+                  <div className="flex justify-end">
+                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Submit Bid
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
           </div>
           
           <div className="lg:col-span-1">

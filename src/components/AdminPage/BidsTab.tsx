@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Check } from "lucide-react";
+import { X, Check, Eye, Trash2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import BidDetailDialog from "./BidDetailDialog";
 
 type ActionType = "approve" | "reject" | null;
 
@@ -34,6 +45,9 @@ const BidsTab = () => {
   const [selectedBid, setSelectedBid] = useState<any>(null);
   const [actionType, setActionType] = useState<ActionType>(null);
   const [adminResponse, setAdminResponse] = useState("");
+  const [viewBidId, setViewBidId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [bidToDelete, setBidToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBids();
@@ -104,6 +118,39 @@ const BidsTab = () => {
     }
   };
 
+  const handleViewBid = (bidId: string) => {
+    setViewBidId(bidId);
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewBidId(null);
+  };
+
+  const handleDeleteBid = (bidId: string) => {
+    setBidToDelete(bidId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBid = async () => {
+    if (!bidToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("bids")
+        .delete()
+        .eq("id", bidToDelete);
+        
+      if (error) throw error;
+      
+      toast.success("Bid deleted successfully");
+      setIsDeleteDialogOpen(false);
+      fetchBids();
+    } catch (error: any) {
+      console.error("Error deleting bid:", error);
+      toast.error(`Failed to delete bid: ${error.message}`);
+    }
+  };
+
   // Create a custom variant for success badges
   const getBadgeVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
     if (status === "approved") return "default";
@@ -165,26 +212,50 @@ const BidsTab = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {bid.status === "pending" && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive"
-                              onClick={() => handleBidAction(bid, "reject")}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-primary"
-                              onClick={() => handleBidAction(bid, "approve")}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-500"
+                            onClick={() => handleViewBid(bid.id)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500"
+                            onClick={() => handleDeleteBid(bid.id)}
+                            title="Delete Bid"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          
+                          {bid.status === "pending" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive"
+                                onClick={() => handleBidAction(bid, "reject")}
+                                title="Reject Bid"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-primary"
+                                onClick={() => handleBidAction(bid, "approve")}
+                                title="Approve Bid"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -235,6 +306,31 @@ const BidsTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* View Bid Detail Dialog */}
+      <BidDetailDialog 
+        bidId={viewBidId} 
+        isOpen={!!viewBidId}
+        onClose={handleCloseViewDialog}
+      />
+      
+      {/* Delete Bid Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this bid? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteBid} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

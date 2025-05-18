@@ -14,6 +14,8 @@ import VerificationDialog from "@/components/bid/VerificationDialog";
 import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LogIn } from "lucide-react";
+import BidSuccessAlert from "./BidSuccessAlert";
 
 interface BidSubmissionDialogProps {
   eventId: string;
@@ -35,7 +37,9 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
     bidId,
     isVerificationModalOpen,
     setIsVerificationModalOpen,
-    handlePhoneVerified
+    handlePhoneVerified,
+    submissionSuccess,
+    setSubmissionSuccess
   } = useBidSubmission(eventId);
 
   const form = useForm<BidFormValues>({
@@ -54,6 +58,14 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
       website: "",
     },
   });
+
+  // Reset form and success state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+      setSubmissionSuccess(false);
+    }
+  }, [isOpen, form, setSubmissionSuccess]);
 
   // Fetch event details
   useEffect(() => {
@@ -89,8 +101,21 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
   }, [isOpen, eventId]);
 
   const onSubmit = async (values: BidFormValues) => {
+    if (!user) {
+      onOpenChange(false);
+      navigate('/login');
+      toast.info("Please login to submit a bid");
+      return;
+    }
+    
     const result = await submitBid(values);
-    if (result && result.bidId) { // Check if result exists and has bidId
+    
+    if (result.isDuplicate) {
+      // Do not close dialog for duplicates, user should see the error
+      return;
+    }
+    
+    if (result && result.bidId && !isVerificationModalOpen) {
       // Send notification to admins about the new bid
       try {
         await supabase.functions.invoke("send-notification", {
@@ -110,26 +135,41 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
         console.error("Failed to send admin notification:", error);
       }
     }
-    onOpenChange(false); // Close the dialog after submission
   };
 
   const handleVerified = () => {
-    if (bidId) { // Check if bidId exists before using it
+    if (bidId) {
       handlePhoneVerified(form.getValues("phone"), form.getValues());
     }
   };
 
-  // Redirect to login if not authenticated
-  const handleSubmitClick = () => {
-    if (!user) {
-      onOpenChange(false);
-      navigate('/login');
-      toast.info("Please login to submit a bid");
-      return;
-    }
-    
-    form.handleSubmit(onSubmit)();
-  };
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogDescription>
+              You need to be logged in to submit a bid.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            <p className="text-muted-foreground text-center">
+              Please login to your account or create a new one to continue with bid submission.
+            </p>
+            <Button onClick={() => {
+              onOpenChange(false);
+              navigate('/login');
+            }} className="w-full">
+              <LogIn className="mr-2 h-4 w-4" />
+              Login or Sign Up
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (isLoading || !eventDetails) {
     return (
@@ -168,27 +208,33 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <EventInfoCard event={transformedEventData} />
+            {submissionSuccess ? (
+              <BidSuccessAlert eventTitle={eventDetails.title} />
+            ) : (
+              <>
+                <EventInfoCard event={transformedEventData} />
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <BrandInfoForm control={form.control} />
-                <ContactInfoForm control={form.control} />
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <BrandInfoForm control={form.control} />
+                    <ContactInfoForm control={form.control} />
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="button" disabled={isSubmitting} onClick={handleSubmitClick}>
-                    {isSubmitting ? "Submitting..." : "Submit Bid"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Submitting..." : "Submit Bid"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -197,7 +243,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
         isOpen={isVerificationModalOpen}
         onOpenChange={setIsVerificationModalOpen}
         phone={form.getValues("phone")}
-        bidId={bidId || ""} // Provide empty string as fallback
+        bidId={bidId || ""}
         onVerified={handleVerified}
       />
     </>

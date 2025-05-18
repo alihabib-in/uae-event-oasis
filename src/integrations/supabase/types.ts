@@ -154,10 +154,12 @@ export type Database = {
           date: string
           description: string | null
           end_date: string | null
+          history: Json | null
           id: string
           image: string | null
           is_public: boolean
           location: string
+          marketing: Json | null
           max_bid: number
           min_bid: number
           organizer_logo: string | null
@@ -167,6 +169,7 @@ export type Database = {
           sponsorship_details: string[] | null
           status: string | null
           tags: string[] | null
+          target_audience: Json | null
           title: string
           user_id: string | null
           venue: string
@@ -179,10 +182,12 @@ export type Database = {
           date: string
           description?: string | null
           end_date?: string | null
+          history?: Json | null
           id?: string
           image?: string | null
           is_public?: boolean
           location: string
+          marketing?: Json | null
           max_bid: number
           min_bid: number
           organizer_logo?: string | null
@@ -192,6 +197,7 @@ export type Database = {
           sponsorship_details?: string[] | null
           status?: string | null
           tags?: string[] | null
+          target_audience?: Json | null
           title: string
           user_id?: string | null
           venue: string
@@ -204,10 +210,12 @@ export type Database = {
           date?: string
           description?: string | null
           end_date?: string | null
+          history?: Json | null
           id?: string
           image?: string | null
           is_public?: boolean
           location?: string
+          marketing?: Json | null
           max_bid?: number
           min_bid?: number
           organizer_logo?: string | null
@@ -217,6 +225,7 @@ export type Database = {
           sponsorship_details?: string[] | null
           status?: string | null
           tags?: string[] | null
+          target_audience?: Json | null
           title?: string
           user_id?: string | null
           venue?: string

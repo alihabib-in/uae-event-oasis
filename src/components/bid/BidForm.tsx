@@ -12,12 +12,13 @@ interface BidFormProps {
   formSchema: any;
   onSubmit: (values: BidFormValues) => Promise<void>;
   isSubmitting: boolean;
+  defaultValues?: Partial<BidFormValues>;
 }
 
-const BidForm = ({ formSchema, onSubmit, isSubmitting }: BidFormProps) => {
+const BidForm = ({ formSchema, onSubmit, isSubmitting, defaultValues }: BidFormProps) => {
   const form = useForm<BidFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       brandName: "",
       businessNature: "",
       companyAddress: "",

@@ -9,6 +9,7 @@ import BrandInfoForm from "@/components/bid/BrandInfoForm";
 import ContactInfoForm from "@/components/bid/ContactInfoForm";
 import BidSuccessAlert from "./BidSuccessAlert";
 import { BidFormValues } from "@/hooks/useBidSubmission";
+import BidForm from "./BidForm";
 
 interface BidSubmissionContentProps {
   eventDetails: any;
@@ -27,23 +28,6 @@ const BidSubmissionContent = ({
   onSubmit,
   onCancel,
 }: BidSubmissionContentProps) => {
-  const form = useForm<BidFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      brandName: "",
-      companyAddress: "",
-      emirate: "",
-      businessNature: "",
-      contactName: "",
-      contactPosition: "",
-      phone: "",
-      email: "",
-      bidAmount: 0,
-      message: "",
-      website: "",
-    },
-  });
-
   // Transform eventDetails to match EventInfoCard's expected format
   const transformedEventData = {
     date: eventDetails.date,
@@ -62,25 +46,21 @@ const BidSubmissionContent = ({
         <>
           <EventInfoCard event={transformedEventData} />
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <BrandInfoForm control={form.control} />
-              <ContactInfoForm control={form.control} />
+          <BidForm 
+            formSchema={formSchema}
+            onSubmit={onSubmit}
+            isSubmitting={isSubmitting}
+          />
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Bid"}
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <div className="flex flex-col sm:flex-row gap-4 justify-end mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
         </>
       )}
     </div>

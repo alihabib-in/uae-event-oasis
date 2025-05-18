@@ -23,6 +23,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
   const { user } = useAuth();
   const [eventDetails, setEventDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [formValues, setFormValues] = useState<BidFormValues | null>(null);
   
   const {
     formSchema,
@@ -40,6 +41,7 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
   useEffect(() => {
     if (!isOpen) {
       setSubmissionSuccess(false);
+      setFormValues(null);
     }
   }, [isOpen, setSubmissionSuccess]);
 
@@ -82,6 +84,9 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
       return;
     }
     
+    // Store form values for later use in verification
+    setFormValues(values);
+    
     const result = await submitBid(values);
     
     if (result?.isDuplicate) {
@@ -112,10 +117,9 @@ const BidSubmissionDialog = ({ eventId, isOpen, onOpenChange, eventTitle }: BidS
   };
 
   const handleVerified = () => {
-    if (bidId) {
-      const phoneValue = "";  // This would be retrieved from a form ref in a complete implementation
-      const formValues = {};  // This would be retrieved from a form ref in a complete implementation
-      handlePhoneVerified(phoneValue, formValues);
+    if (bidId && formValues) {
+      // Pass the saved form values instead of an empty object
+      handlePhoneVerified("", formValues);
     }
   };
 

@@ -1,30 +1,38 @@
 
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Check, Home } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CheckCircle, Home } from "lucide-react";
 
 interface BidSuccessAlertProps {
   eventTitle?: string;
 }
 
 const BidSuccessAlert = ({ eventTitle }: BidSuccessAlertProps) => {
+  const navigate = useNavigate();
+  
   return (
-    <Alert className="bg-green-50 border-green-200 mb-6">
-      <Check className="h-4 w-4 text-green-500" />
-      <AlertTitle className="text-green-700">Bid Submitted Successfully!</AlertTitle>
-      <AlertDescription className="text-green-600">
-        <p className="mb-2">
-          Your bid for {eventTitle || "this event"} has been submitted. We'll notify you once it's reviewed.
-        </p>
-        <Button variant="outline" size="sm" asChild className="mt-2">
-          <Link to="/" className="flex items-center gap-2">
-            <Home className="h-4 w-4" />
-            <span>Return to Homepage</span>
-          </Link>
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <div className="space-y-4">
+      <Alert variant="default" className="border-green-500 bg-green-50 dark:bg-green-950/30">
+        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <AlertTitle className="ml-2 text-green-800 dark:text-green-300">
+          Bid Submitted Successfully
+        </AlertTitle>
+        <AlertDescription className="text-green-700 dark:text-green-400 ml-7">
+          Your bid for {eventTitle || "this event"} has been submitted successfully. 
+          We will review your bid and get back to you soon.
+        </AlertDescription>
+      </Alert>
+      
+      <Button 
+        className="w-full"
+        onClick={() => navigate("/")}
+      >
+        <Home className="mr-2 h-4 w-4" />
+        Return to Home
+      </Button>
+    </div>
   );
 };
 

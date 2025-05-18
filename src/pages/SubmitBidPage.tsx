@@ -3,13 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Loader2, LogIn } from "lucide-react";
+import { ChevronLeft, Loader2, LogIn, Home } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventInfoCard from "@/components/bid/EventInfoCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useBidSubmission } from "@/hooks/useBidSubmission";
+import { useBidSubmission, BidFormValues } from "@/hooks/useBidSubmission";
 import VerificationDialog from "@/components/bid/VerificationDialog";
 import { useAuth } from "@/components/AuthProvider";
 import BidSuccessAlert from "@/components/bid/BidSuccessAlert";
@@ -21,6 +21,7 @@ const SubmitBidPage = () => {
   const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [formValues, setFormValues] = useState<BidFormValues | null>(null);
   
   const {
     formSchema,
@@ -63,7 +64,8 @@ const SubmitBidPage = () => {
     fetchEvent();
   }, [eventId, navigate]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: BidFormValues) => {
+    setFormValues(values); // Store form values for verification process
     const result = await submitBid(values);
     
     // If submission was successful and verification wasn't needed or if verification is complete
@@ -72,9 +74,12 @@ const SubmitBidPage = () => {
     }
   };
   
-  const handleVerified = (phone: string, formValues: any) => {
-    handlePhoneVerified(phone, formValues);
-    setTimeout(() => navigate(`/events/${eventId}`), 2000);
+  const handleVerified = () => {
+    if (formValues && bidId) {
+      // Pass the stored formValues instead of an empty object
+      handlePhoneVerified("", formValues);
+      setTimeout(() => navigate(`/events/${eventId}`), 2000);
+    }
   };
 
   if (isLoading) {
@@ -148,7 +153,16 @@ const SubmitBidPage = () => {
             </div>
             
             {submissionSuccess ? (
-              <BidSuccessAlert eventTitle={event?.title} />
+              <div className="space-y-4">
+                <BidSuccessAlert eventTitle={event?.title} />
+                <Button 
+                  className="w-full"
+                  onClick={() => navigate("/")}
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Return to Home
+                </Button>
+              </div>
             ) : (
               <BidForm 
                 formSchema={formSchema}
@@ -169,7 +183,7 @@ const SubmitBidPage = () => {
         onOpenChange={setIsVerificationModalOpen}
         phone={""}
         bidId={bidId || ""}
-        onVerified={() => handleVerified("", {})}
+        onVerified={handleVerified}
       />
       
       <Footer />

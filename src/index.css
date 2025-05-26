@@ -43,13 +43,13 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold tracking-tight;
     letter-spacing: -0.01em;
-    color: #000;
+    color: #000 !important;
   }
   
   .section-title {
     @apply text-3xl md:text-4xl font-bold tracking-tight;
     letter-spacing: -0.01em;
-    color: #000;
+    color: #000 !important;
   }
   
   .section-subtitle {

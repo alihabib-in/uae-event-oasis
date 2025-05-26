@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, Banknote, Award, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Banknote, Award, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,9 +55,9 @@ const Hero = () => {
   ];
 
   const displayEvents = events.length > 0 ? events : [
-    { id: 1, title: "Dubai International Conference", description: "Premier business conference", min_bid: 5000, attendees: 2000 },
-    { id: 2, title: "Abu Dhabi Tech Summit", description: "Technology and innovation", min_bid: 8000, attendees: 1500 },
-    { id: 3, title: "Sharjah Art Festival", description: "Arts and culture celebration", min_bid: 3000, attendees: 3000 }
+    { id: 1, title: "Dubai International Conference", description: "Premier business conference", min_bid: 5000, attendees: 2000, location: "Dubai World Trade Centre" },
+    { id: 2, title: "Abu Dhabi Tech Summit", description: "Technology and innovation", min_bid: 8000, attendees: 1500, location: "ADNEC Abu Dhabi" },
+    { id: 3, title: "Sharjah Art Festival", description: "Arts and culture celebration", min_bid: 3000, attendees: 3000, location: "Sharjah Art Museum" }
   ];
 
   const nextSlide = () => {
@@ -72,13 +72,24 @@ const Hero = () => {
     );
   };
 
+  const handleCardClick = (eventId: string | number) => {
+    window.location.href = `/events/${eventId}`;
+  };
+
   return (
     <div className="hero-gradient min-h-[92vh] flex items-center relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-balance leading-[1.1] text-foreground">
-              <span className="text-gradient font-bold">Advertise your brand at exclusive events across UAE</span>
+            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-balance leading-[1.1] text-black">
+              <span className="text-gradient font-bold">Advertise your brand at exclusive events across </span>
+              <span className="inline-flex items-center">
+                <img 
+                  src="https://flagcdn.com/ae.svg" 
+                  alt="UAE Flag" 
+                  className="w-16 h-12 md:w-20 md:h-16 mx-2 rounded shadow-md"
+                />
+              </span>
             </h1>
             <p className="text-xl text-gray-600 mb-12 leading-relaxed max-w-2xl font-medium">
               sponsorby is the premier marketplace providing brands high visibility across the largest UAE events.
@@ -87,7 +98,7 @@ const Hero = () => {
               <Button size="lg" className="text-lg px-8 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all" asChild>
                 <Link to="/events" className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Find Events <ArrowRight className="ml-1 h-5 w-5" />
+                  Find Events
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="text-lg px-8 py-7 rounded-xl border-2 shadow-sm hover:shadow-md transition-all" asChild>
@@ -100,7 +111,7 @@ const Hero = () => {
           </div>
           
           <div className="lg:col-span-2 relative animate-scale-in">
-            <div className="relative h-[400px] w-full max-w-[320px] mx-auto">
+            <div className="relative h-[400px] w-full max-w-[380px] mx-auto">
               {/* Carousel container */}
               <div className="relative h-full w-full">
                 {displayEvents.map((event, index) => {
@@ -143,7 +154,7 @@ const Hero = () => {
                         transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale})`,
                         opacity
                       }}
-                      onClick={() => setCurrentIndex(index)}
+                      onClick={() => handleCardClick(event.id)}
                     >
                       <div className="w-full h-full bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 border border-gray-200">
                         <div className="relative h-48 rounded-t-2xl overflow-hidden">
@@ -167,10 +178,17 @@ const Hero = () => {
                           <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                             {event.description}
                           </p>
+                          
+                          {/* Location */}
+                          <div className="flex items-center text-gray-600 text-sm mb-3">
+                            <MapPin className="h-4 w-4 mr-1.5" />
+                            <span className="truncate">{event.location || 'Dubai, UAE'}</span>
+                          </div>
+                          
                           <div className="flex items-center justify-between">
                             <div className="flex items-center text-black font-semibold">
                               <Banknote className="h-4 w-4 mr-1" />
-                              <span className="text-sm">AED {event.min_bid?.toLocaleString() || '5,000'}</span>
+                              <span className="text-sm">Starts from AED {event.min_bid?.toLocaleString() || '5,000'}</span>
                             </div>
                             <div className="text-xs text-gray-500">
                               {event.attendees?.toLocaleString() || '1,000'} attendees

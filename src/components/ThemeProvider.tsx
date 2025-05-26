@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-type Theme = "dark";  // Changed to dark theme for black & white
+type Theme = "light";  // Changed to light theme for white background
 
 type ThemeContextType = {
   theme: Theme;
@@ -13,13 +13,13 @@ type ThemeContextType = {
 const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Force dark theme for black & white design
-  const theme: Theme = "dark";
+  // Force light theme for white background design
+  const theme: Theme = "light";
 
-  // Add toggleTheme function that doesn't actually toggle (just keeps dark theme)
+  // Add toggleTheme function that doesn't actually toggle (just keeps light theme)
   const toggleTheme = () => {
-    // This is just a stub function as we're enforcing dark mode
-    console.log("Theme toggle attempted, but dark theme is enforced");
+    // This is just a stub function as we're enforcing light mode
+    console.log("Theme toggle attempted, but light theme is enforced");
   };
 
   // Ensure this useEffect only runs in the browser
@@ -27,12 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Apply theme class to document element
     const root = window.document.documentElement;
     
-    // Set dark theme
-    root.classList.remove("light");
-    root.classList.add("dark");
+    // Set light theme
+    root.classList.remove("dark");
+    root.classList.add("light");
     
     // Save to localStorage
-    localStorage.setItem("theme", "dark");
+    localStorage.setItem("theme", "light");
   }, []);
 
   const value = React.useMemo(() => ({ theme, toggleTheme }), [theme]);

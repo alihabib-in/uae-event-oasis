@@ -48,13 +48,46 @@ const HistoryTab = ({ event, onClose }: HistoryTabProps) => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
+        // Helper functions to safely parse JSONB data
+        const parsePreviousEditions = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              total_editions: typeof value.total_editions === 'number' ? value.total_editions : 0,
+              years_running: typeof value.years_running === 'number' ? value.years_running : 0
+            };
+          }
+          return { total_editions: 0, years_running: 0 };
+        };
+
+        const parseAttendanceGrowth = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              year_over_year: typeof value.year_over_year === 'number' ? value.year_over_year : 0,
+              total_growth: typeof value.total_growth === 'number' ? value.total_growth : 0
+            };
+          }
+          return { year_over_year: 0, total_growth: 0 };
+        };
+
+        const parseMediaCoverage = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              tv: typeof value.tv === 'number' ? value.tv : 0,
+              print: typeof value.print === 'number' ? value.print : 0,
+              online: typeof value.online === 'number' ? value.online : 0,
+              social_media: typeof value.social_media === 'number' ? value.social_media : 0
+            };
+          }
+          return { tv: 0, print: 0, online: 0, social_media: 0 };
+        };
+
         setFormData({
-          previous_editions: data.previous_editions || { total_editions: 0, years_running: 0 },
-          attendance_growth: data.attendance_growth || { year_over_year: 0, total_growth: 0 },
-          notable_sponsors: data.notable_sponsors || [],
-          awards_recognition: data.awards_recognition || [],
-          media_coverage: data.media_coverage || { tv: 0, print: 0, online: 0, social_media: 0 },
-          success_stories: data.success_stories || []
+          previous_editions: parsePreviousEditions(data.previous_editions),
+          attendance_growth: parseAttendanceGrowth(data.attendance_growth),
+          notable_sponsors: Array.isArray(data.notable_sponsors) ? data.notable_sponsors : [],
+          awards_recognition: Array.isArray(data.awards_recognition) ? data.awards_recognition : [],
+          media_coverage: parseMediaCoverage(data.media_coverage),
+          success_stories: Array.isArray(data.success_stories) ? data.success_stories : []
         });
       }
     } catch (error: any) {

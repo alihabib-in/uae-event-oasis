@@ -49,14 +49,26 @@ const TargetAudienceTab = ({ event, onClose }: TargetAudienceTabProps) => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
+        // Helper function to safely parse JSONB data
+        const parseGenderDistribution = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              male: typeof value.male === 'number' ? value.male : 0,
+              female: typeof value.female === 'number' ? value.female : 0,
+              other: typeof value.other === 'number' ? value.other : 0
+            };
+          }
+          return { male: 0, female: 0, other: 0 };
+        };
+
         setFormData({
-          age_groups: data.age_groups || [],
-          gender_distribution: data.gender_distribution || { male: 0, female: 0, other: 0 },
-          income_levels: data.income_levels || [],
-          interests: data.interests || [],
-          geographic_location: data.geographic_location || [],
-          profession_types: data.profession_types || [],
-          education_levels: data.education_levels || []
+          age_groups: Array.isArray(data.age_groups) ? data.age_groups : [],
+          gender_distribution: parseGenderDistribution(data.gender_distribution),
+          income_levels: Array.isArray(data.income_levels) ? data.income_levels : [],
+          interests: Array.isArray(data.interests) ? data.interests : [],
+          geographic_location: Array.isArray(data.geographic_location) ? data.geographic_location : [],
+          profession_types: Array.isArray(data.profession_types) ? data.profession_types : [],
+          education_levels: Array.isArray(data.education_levels) ? data.education_levels : []
         });
       }
     } catch (error: any) {

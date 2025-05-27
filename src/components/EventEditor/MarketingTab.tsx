@@ -49,14 +49,39 @@ const MarketingTab = ({ event, onClose }: MarketingTabProps) => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
+        // Helper functions to safely parse JSONB data
+        const parseSocialMediaReach = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              facebook: typeof value.facebook === 'number' ? value.facebook : 0,
+              instagram: typeof value.instagram === 'number' ? value.instagram : 0,
+              twitter: typeof value.twitter === 'number' ? value.twitter : 0,
+              linkedin: typeof value.linkedin === 'number' ? value.linkedin : 0,
+              youtube: typeof value.youtube === 'number' ? value.youtube : 0
+            };
+          }
+          return { facebook: 0, instagram: 0, twitter: 0, linkedin: 0, youtube: 0 };
+        };
+
+        const parseExpectedReach = (value: any) => {
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return {
+              online: typeof value.online === 'number' ? value.online : 0,
+              offline: typeof value.offline === 'number' ? value.offline : 0,
+              total: typeof value.total === 'number' ? value.total : 0
+            };
+          }
+          return { online: 0, offline: 0, total: 0 };
+        };
+
         setFormData({
-          marketing_channels: data.marketing_channels || [],
-          social_media_reach: data.social_media_reach || { facebook: 0, instagram: 0, twitter: 0, linkedin: 0, youtube: 0 },
-          advertising_budget: data.advertising_budget || 0,
-          promotional_materials: data.promotional_materials || [],
-          media_partnerships: data.media_partnerships || [],
-          influencer_collaborations: data.influencer_collaborations || [],
-          expected_reach: data.expected_reach || { online: 0, offline: 0, total: 0 }
+          marketing_channels: Array.isArray(data.marketing_channels) ? data.marketing_channels : [],
+          social_media_reach: parseSocialMediaReach(data.social_media_reach),
+          advertising_budget: typeof data.advertising_budget === 'number' ? data.advertising_budget : 0,
+          promotional_materials: Array.isArray(data.promotional_materials) ? data.promotional_materials : [],
+          media_partnerships: Array.isArray(data.media_partnerships) ? data.media_partnerships : [],
+          influencer_collaborations: Array.isArray(data.influencer_collaborations) ? data.influencer_collaborations : [],
+          expected_reach: parseExpectedReach(data.expected_reach)
         });
       }
     } catch (error: any) {

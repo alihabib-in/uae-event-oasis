@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DialogFooter } from "@/components/ui/dialog";
 import { 
   Form, 
   FormControl, 
@@ -28,7 +30,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { DialogFooter } from "@/components/ui/dialog";
 
 interface DetailsTabProps {
   event?: any;
@@ -47,7 +48,9 @@ const eventSchema = z.object({
   min_bid: z.coerce.number().positive("Minimum bid must be a positive number"),
   max_bid: z.coerce.number().positive("Maximum bid must be a positive number"),
   attendees: z.coerce.number().positive("Attendees must be a positive number"),
-  is_public: z.boolean().default(true)
+  is_public: z.boolean().default(true),
+  organizer_name: z.string().min(2, "Organizer name is required"),
+  phone: z.string().min(2, "Phone is required")
 });
 
 const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
@@ -66,7 +69,9 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
       min_bid: 0,
       max_bid: 0,
       attendees: 0,
-      is_public: true
+      is_public: true,
+      organizer_name: "",
+      phone: ""
     }
   });
 
@@ -83,29 +88,16 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
         min_bid: event.min_bid || 0,
         max_bid: event.max_bid || 0,
         attendees: event.attendees || 0,
-        is_public: event.is_public !== undefined ? event.is_public : true
+        is_public: event.is_public !== undefined ? event.is_public : true,
+        organizer_name: event.organizer_name || "",
+        phone: event.phone || ""
       });
 
-      // Load image preview if available
       if (event.image) {
         setImagePreview(event.image);
       } else {
         setImagePreview(null);
       }
-    } else {
-      form.reset({
-        title: "",
-        description: "",
-        date: new Date(),
-        location: "",
-        venue: "",
-        category: "",
-        min_bid: 0,
-        max_bid: 0,
-        attendees: 0,
-        is_public: true
-      });
-      setImagePreview(null);
     }
   }, [event, form]);
 
@@ -114,7 +106,6 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
       const file = e.target.files[0];
       setImageFile(file);
       
-      // Create a preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
@@ -148,6 +139,7 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
         imageUrl = data.publicUrl;
       }
 
+      // Update the main event
       const { error } = await supabase
         .from('events')
         .update({
@@ -162,6 +154,8 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
           max_bid: values.max_bid,
           attendees: values.attendees,
           is_public: values.is_public,
+          organizer_name: values.organizer_name,
+          phone: values.phone,
           image: imageUrl
         })
         .eq('id', event.id);
@@ -225,8 +219,35 @@ const DetailsTab = ({ event, onClose, onEventUpdated }: DetailsTabProps) => {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="organizer_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Organizer Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
-          {/* Banner/Cover Photo Upload */}
           <div className="col-span-full">
             <FormLabel className="block mb-2">Event Banner/Cover Photo</FormLabel>
             <div className="flex flex-col space-y-4">

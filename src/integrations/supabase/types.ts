@@ -104,6 +104,103 @@ export type Database = {
           },
         ]
       }
+      event_history: {
+        Row: {
+          attendance_growth: Json | null
+          awards_recognition: string[] | null
+          created_at: string
+          event_id: string
+          id: string
+          media_coverage: Json | null
+          notable_sponsors: string[] | null
+          previous_editions: Json | null
+          success_stories: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          attendance_growth?: Json | null
+          awards_recognition?: string[] | null
+          created_at?: string
+          event_id: string
+          id?: string
+          media_coverage?: Json | null
+          notable_sponsors?: string[] | null
+          previous_editions?: Json | null
+          success_stories?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          attendance_growth?: Json | null
+          awards_recognition?: string[] | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          media_coverage?: Json | null
+          notable_sponsors?: string[] | null
+          previous_editions?: Json | null
+          success_stories?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_history_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_marketing: {
+        Row: {
+          advertising_budget: number | null
+          created_at: string
+          event_id: string
+          expected_reach: Json | null
+          id: string
+          influencer_collaborations: string[] | null
+          marketing_channels: string[] | null
+          media_partnerships: string[] | null
+          promotional_materials: string[] | null
+          social_media_reach: Json | null
+          updated_at: string
+        }
+        Insert: {
+          advertising_budget?: number | null
+          created_at?: string
+          event_id: string
+          expected_reach?: Json | null
+          id?: string
+          influencer_collaborations?: string[] | null
+          marketing_channels?: string[] | null
+          media_partnerships?: string[] | null
+          promotional_materials?: string[] | null
+          social_media_reach?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          advertising_budget?: number | null
+          created_at?: string
+          event_id?: string
+          expected_reach?: Json | null
+          id?: string
+          influencer_collaborations?: string[] | null
+          marketing_channels?: string[] | null
+          media_partnerships?: string[] | null
+          promotional_materials?: string[] | null
+          social_media_reach?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_marketing_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_spaces: {
         Row: {
           amenities: string[]
@@ -145,6 +242,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      event_target_audience: {
+        Row: {
+          age_groups: string[] | null
+          created_at: string
+          education_levels: string[] | null
+          event_id: string
+          gender_distribution: Json | null
+          geographic_location: string[] | null
+          id: string
+          income_levels: string[] | null
+          interests: string[] | null
+          profession_types: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          age_groups?: string[] | null
+          created_at?: string
+          education_levels?: string[] | null
+          event_id: string
+          gender_distribution?: Json | null
+          geographic_location?: string[] | null
+          id?: string
+          income_levels?: string[] | null
+          interests?: string[] | null
+          profession_types?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          age_groups?: string[] | null
+          created_at?: string
+          education_levels?: string[] | null
+          event_id?: string
+          gender_distribution?: Json | null
+          geographic_location?: string[] | null
+          id?: string
+          income_levels?: string[] | null
+          interests?: string[] | null
+          profession_types?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_target_audience_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {

@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label"; // Changed from FormLabel to Label
+import { Label } from "@/components/ui/label";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useForm } from "react-hook-form"; // Added useForm import
 
 interface PackagesTabProps {
   eventId?: string;
@@ -22,9 +21,7 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
     description: "",
     price: 0
   });
-  
-  // Initialize form with useForm
-  const form = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (eventId) {
@@ -57,6 +54,7 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
       return;
     }
     
+    setIsSubmitting(true);
     try {
       const { data, error } = await supabase
         .from('sponsorship_packages')
@@ -80,6 +78,8 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
     } catch (error: any) {
       console.error('Error adding package:', error);
       toast.error(`Error adding package: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -137,9 +137,10 @@ const PackagesTab = ({ eventId, onClose }: PackagesTabProps) => {
         </div>
         <Button
           onClick={handleAddPackage}
+          disabled={isSubmitting}
           className="w-full mt-4"
         >
-          Add Package
+          {isSubmitting ? "Adding..." : "Add Package"}
         </Button>
       </div>
       

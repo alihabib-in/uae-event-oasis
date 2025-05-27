@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Calendar, Banknote, Award, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
@@ -82,12 +81,12 @@ const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3 animate-fade-in">
             <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-balance leading-[1.1] text-black">
-              <span className="text-gradient font-bold">Advertise your brand at exclusive events across </span>
+              <span className="text-gradient font-bold">Advertise your brand at exclusive events across </span> 
               <span className="inline-flex items-center">
                 <img 
                   src="https://flagcdn.com/ae.svg" 
                   alt="UAE Flag" 
-                  className="w-16 h-12 md:w-20 md:h-16 mx-2 rounded shadow-md"
+                  className="w-12 h-9 md:w-16 md:h-12 mx-2 rounded shadow-md"
                 />
               </span>
             </h1>
@@ -201,22 +200,7 @@ const Hero = () => {
                 })}
               </div>
               
-              {/* Navigation arrows */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
-              >
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
-              </button>
-              
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-700" />
-              </button>
-              
-              {/* Dots indicator */}
+              {/* Dots indicator only - arrows removed */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
                 {displayEvents.map((_, index) => (
                   <button
